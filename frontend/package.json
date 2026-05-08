@@ -1,0 +1,40 @@
+{
+  "name": "prescphealth-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PrescpHealth SaaS Frontend — React/TypeScript clinical decision support UI. Serves clinicians in Africa and underserved communities with a fast, accessible, mobile-friendly interface for patient management, risk visualization, and AI-assisted clinical workflows.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "lint": "eslint src/",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "react-router-dom": "7.1.0",
+    "axios": "1.7.9",
+    "zustand": "5.0.2",
+    "recharts": "2.15.0"
+  },
+  "devDependencies": {
+    "vite": "6.0.0",
+    "vitest": "2.1.0",
+    "typescript": "5.7.0",
+    "@testing-library/react": "16.1.0",
+    "playwright": "1.49.0",
+    "@vitejs/plugin-react": "4.3.0",
+    "@types/react": "19.0.0",
+    "@types/react-dom": "19.0.0",
+    "jsdom": "25.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

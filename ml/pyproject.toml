@@ -1,0 +1,113 @@
+# =============================================================================
+# PrescpHealth ML Engine — Machine Learning Pipeline
+# =============================================================================
+# This package contains the ML models and inference logic for:
+#   1. Risk Engine — Ensemble (XGBoost + LightGBM + Random Forest + Neural Net)
+#      predicting 6-disease risk scores simultaneously
+#   2. Forecasting Engine — TFT/LSTM/Prophet ensemble for health trajectory
+#      prediction at 3/6/12 month horizons
+#   3. Survival Analysis — Cox PH + DeepSurv for time-to-event modeling
+#   4. SHAP Explainability — Feature importance for every prediction
+#   5. Bayesian Prior Module — Population-level priors for sparse-data patients
+#
+# This package is imported by the backend Celery workers for inference.
+# Model training scripts live here but are run separately (not in production).
+#
+# IMPORTANT: All dependency versions are pinned exactly (no ^, ~, or >=).
+# ML model reproducibility requires deterministic environments — a different
+# version of scikit-learn or XGBoost can produce different predictions.
+# =============================================================================
+
+[project]
+name = "prescphealth-ml"
+version = "0.1.0"
+description = "PrescpHealth ML Engine — Risk prediction, forecasting, and survival analysis"
+readme = "README.md"
+license = { text = "Proprietary" }
+requires-python = ">=3.11"
+
+# ---------------------------------------------------------------------------
+# Dependencies — pinned to exact versions for model reproducibility.
+# A different version of any ML library can change prediction outputs,
+# which would invalidate our model validation metrics and audit trail.
+# ---------------------------------------------------------------------------
+dependencies = [
+    # --- Gradient Boosting Models (Primary Risk Engine) ---
+    # XGBoost: Primary model in the risk engine ensemble (highest weight)
+    "xgboost==2.1.0",
+    # LightGBM: Secondary gradient boosting model (faster training, good on sparse data)
+    "lightgbm==4.5.0",
+
+    # --- Classical ML Utilities ---
+    # scikit-learn: Random Forest, preprocessing, metrics, cross-validation
+    "scikit-learn==1.5.0",
+
+    # --- Deep Learning ---
+    # PyTorch: Neural network component of risk ensemble + DeepSurv + TFT/LSTM forecasting
+    "torch==2.5.0",
+
+    # --- Explainability ---
+    # SHAP: Game-theoretic feature importance for every risk score prediction.
+    # Required by HIPAA for clinical decision transparency — clinicians need to
+    # understand WHY a risk score is high, not just THAT it is high.
+    "shap==0.46.0",
+
+    # --- Time Series Forecasting ---
+    # Prophet: Additive time-series model for health metric forecasting.
+    # Handles seasonality and missing data well — important for patients
+    # with irregular visit schedules common in African healthcare settings.
+    "prophet==1.1.6",
+
+    # --- Survival Analysis ---
+    # lifelines: Classical survival analysis (Cox PH, Kaplan-Meier)
+    "lifelines==0.29.0",
+    # pycox: Deep learning survival models (DeepSurv, DeepHit)
+    "pycox==0.2.3",
+
+    # --- Testing ---
+    # Hypothesis: Property-based testing for ML invariants
+    # (e.g., risk scores always in [0,100], SHAP additivity)
+    "hypothesis==6.115.0",
+]
+
+# ---------------------------------------------------------------------------
+# Development dependencies — training utilities, notebooks, profiling
+# ---------------------------------------------------------------------------
+[project.optional-dependencies]
+dev = [
+    "pytest==8.3.0",
+    "pytest-cov==6.0.0",
+    "jupyter==1.1.0",
+    "matplotlib==3.9.0",
+    "pandas==2.2.0",
+    "ruff==0.8.0",
+    "mypy==1.13.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+# ---------------------------------------------------------------------------
+# Tool Configuration
+# ---------------------------------------------------------------------------
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "S", "B"]
+ignore = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "unit: Fast isolated tests",
+    "property: Hypothesis property-based tests for ML invariants",
+    "slow: Tests that train models or run full inference (>30s)",
+]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true

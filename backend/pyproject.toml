@@ -1,0 +1,122 @@
+# =============================================================================
+# PrescpHealth Backend — Python/FastAPI Service
+# =============================================================================
+# This is the backend service for the PrescpHealth SaaS platform.
+# It provides the RESTful API layer, handles authentication, patient management,
+# risk engine orchestration, alert dispatch, and all business logic.
+#
+# Architecture: FastAPI + SQLAlchemy (async) + PostgreSQL + Redis + Celery
+# Deployment: Docker container, horizontally scalable behind a load balancer
+#
+# IMPORTANT: All dependency versions are pinned exactly (no ^, ~, or >=).
+# This ensures reproducible builds across all environments — critical for
+# a HIPAA-regulated clinical platform where build determinism matters.
+# =============================================================================
+
+[project]
+name = "prescphealth-backend"
+version = "0.1.0"
+description = "PrescpHealth SaaS Backend — AI-powered clinical decision support API"
+readme = "README.md"
+license = { text = "Proprietary" }
+requires-python = ">=3.11"
+
+# ---------------------------------------------------------------------------
+# Dependencies — pinned to exact versions for reproducible, auditable builds.
+# Each dependency is approved per the dependency management steering rule.
+# See .kiro/steering/dependency-management.md for approval criteria.
+# ---------------------------------------------------------------------------
+dependencies = [
+    # --- Web Framework & Server ---
+    # FastAPI: High-performance async web framework with automatic OpenAPI docs
+    "fastapi==0.115.0",
+    # Uvicorn: ASGI server for running FastAPI in production
+    "uvicorn==0.32.0",
+
+    # --- Database & ORM ---
+    # SQLAlchemy: Async ORM with PostgreSQL RLS support for tenant isolation
+    "sqlalchemy[asyncio]==2.0.36",
+    # asyncpg: High-performance async PostgreSQL driver (required by SQLAlchemy async)
+    "asyncpg==0.30.0",
+    # Alembic: Database migration tool for schema versioning
+    "alembic==1.14.0",
+
+    # --- Validation & Configuration ---
+    # Pydantic: Data validation using Python type hints (request/response schemas)
+    "pydantic==2.10.0",
+    # Pydantic-settings: Environment-based configuration management (12-factor app)
+    "pydantic-settings==2.7.0",
+
+    # --- Task Queue & Caching ---
+    # Celery: Distributed task queue for async ML inference and notification dispatch
+    "celery==5.4.0",
+    # Redis: In-memory cache, session store, rate limiter, and Celery broker
+    "redis==5.2.0",
+
+    # --- Security & Authentication ---
+    # bcrypt: Password hashing with configurable cost factor (we use cost 12 per HIPAA)
+    "bcrypt==4.2.0",
+    # python-jose: JWT token creation and validation (access + refresh tokens)
+    "python-jose==3.3.0",
+
+    # --- HTTP Client ---
+    # httpx: Async HTTP client for calling external services (OpenAI, Anthropic, etc.)
+    "httpx==0.28.0",
+
+    # --- Observability & Logging ---
+    # structlog: Structured JSON logging — mandatory per logging steering rule.
+    # All logs are structured JSON with correlation_id, tenant_id, and no PHI.
+    "structlog==24.4.0",
+
+    # --- Testing (included as dev dependency but listed here for simplicity) ---
+    # Hypothesis: Property-based testing framework for correctness properties
+    "hypothesis==6.115.0",
+]
+
+# ---------------------------------------------------------------------------
+# Development dependencies — tools used during development and CI only.
+# Not installed in production containers.
+# ---------------------------------------------------------------------------
+[project.optional-dependencies]
+dev = [
+    "pytest==8.3.0",
+    "pytest-asyncio==0.24.0",
+    "pytest-cov==6.0.0",
+    "ruff==0.8.0",
+    "mypy==1.13.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+# ---------------------------------------------------------------------------
+# Tool Configuration
+# ---------------------------------------------------------------------------
+
+[tool.ruff]
+# Line length matches team convention — long enough for readability,
+# short enough to avoid horizontal scrolling on smaller screens
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "S", "B", "A", "COM", "C4", "DTZ", "T20", "RET"]
+ignore = ["COM812"]  # Trailing comma conflicts with formatter
+
+[tool.pytest.ini_options]
+# Async mode for testing async FastAPI endpoints and SQLAlchemy queries
+asyncio_mode = "auto"
+testpaths = ["tests"]
+# Markers for organizing test types
+markers = [
+    "unit: Fast isolated tests with no external dependencies",
+    "integration: Tests requiring database and/or Redis",
+    "property: Hypothesis property-based tests",
+]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+# SQLAlchemy and some other libs need these relaxed
+plugins = []

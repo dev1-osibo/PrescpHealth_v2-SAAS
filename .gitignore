@@ -1,0 +1,167 @@
+﻿# =============================================================================
+# PrescpHealth SaaS Platform — Git Ignore Rules
+# =============================================================================
+# Covers Python (backend + ML), Node.js (frontend), and common IDE files.
+# CRITICAL: .env files with real secrets must NEVER be committed.
+# =============================================================================
+
+# =============================================================================
+# ENVIRONMENT & SECRETS — Never commit real credentials
+# =============================================================================
+.env
+.env.local
+.env.production
+.env.staging
+*.pem
+*.key
+*.crt
+
+# =============================================================================
+# PYTHON — Backend & ML Engine
+# =============================================================================
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Distribution / packaging
+*.egg-info/
+*.egg
+dist/
+build/
+wheels/
+
+# Package manager lock files (we DO commit these, but ignore generated ones)
+# poetry.lock and uv.lock are committed — they are source of truth
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Mypy cache
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Ruff cache
+.ruff_cache/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# ML model artifacts (large binary files — stored in object storage, not git)
+ml/artifacts/
+*.pkl
+*.joblib
+*.h5
+*.pt
+*.pth
+*.onnx
+*.pmml
+
+# =============================================================================
+# NODE.JS — Frontend
+# =============================================================================
+
+# Dependencies
+node_modules/
+
+# Build output
+frontend/dist/
+frontend/build/
+
+# Vite cache
+frontend/.vite/
+
+# Test coverage
+frontend/coverage/
+
+# Playwright test results
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/
+
+# TypeScript build info
+*.tsbuildinfo
+
+# =============================================================================
+# IDE & EDITOR FILES
+# =============================================================================
+
+# VS Code (keep .vscode/settings.json for shared workspace settings)
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# JetBrains (PyCharm, WebStorm)
+.idea/
+
+# Vim
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# =============================================================================
+# DOCKER
+# =============================================================================
+# Docker build context exclusions are in .dockerignore, not here.
+# But we ignore local docker volumes and compose overrides.
+docker-compose.override.yml
+.docker-data/
+
+# =============================================================================
+# MISCELLANEOUS
+# =============================================================================
+
+# Logs (application logs should go to stdout/structured logging, not files)
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+
+# OS-generated files
+*.bak
+*.tmp
+*.temp
+
+# Database files (local SQLite for testing only)
+*.db
+*.sqlite3
+
+# Generated documentation (rebuild from source)
+docs/_build/
+site/
