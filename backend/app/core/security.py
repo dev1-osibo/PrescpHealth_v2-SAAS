@@ -81,7 +81,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
             plain_password.encode("utf-8"),
             hashed_password.encode("utf-8"),
         )
-    except (ValueError, TypeError):
+    except (ValueError, TypeError, AttributeError):
         # Malformed hash — treat as non-match (don't crash)
         return False
 
@@ -208,3 +208,4 @@ def hash_token(token_value: str) -> str:
     """
     import hashlib
     return hashlib.sha256(token_value.encode("utf-8")).hexdigest()
+
