@@ -3,50 +3,54 @@ PrescpHealth Backend — Auth API Router.
 
 Defines the authentication endpoints:
 - POST /api/v1/auth/login — authenticate with email/password
-- POST /api/v1/auth/refresh — rotate refresh token for new pair
+- POST /api/v1/auth/refresh — rotate refresh token for new token pair
 - POST /api/v1/auth/logout — revoke refresh token (end session)
 - POST /api/v1/auth/mfa/verify — verify TOTP code after login
 
-These endpoints are PRE-AUTHENTICATION (no JWT required) except logout
-which requires a valid session. They're excluded from tenant middleware
-since the user hasn't been authenticated yet.
+These endpoints are PUBLIC (no JWT required) because they're used
+to OBTAIN authentication. The exception is /mfa/verify which requires
+a partial auth state (login succeeded but MFA pending).
 
 Per API design steering rule:
 - All responses use the standard envelope format
 - Errors include machine-readable code + request_id
 - No PHI in any auth endpoint response
+
+Per security-hipaa steering rule:
+- Never reveal whether an email exists (same error for both cases)
+- Never log passwords or token values
+- Rate limit login attempts (handled by RateLimitMiddleware)
 """
 
 import structlog
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
-from app.core.deps import get_db
-from app.core.exceptions import AuthError
+from app.core.database import get_session_factory
 from app.modules.auth.schemas import (
+    AuthMessageResponse,
     LoginRequest,
     LogoutRequest,
     MFAVerifyRequest,
     RefreshRequest,
     TokenResponse,
-    AuthMessageResponse,
 )
 from app.modules.auth.service import AuthService
 
 # ---------------------------------------------------------------------------
-# Module logger — logs auth endpoint access without credentials or PHI
+# Module logger — logs auth endpoint activity without credentials
 # ---------------------------------------------------------------------------
 logger = structlog.get_logger(__name__)
 
 # ---------------------------------------------------------------------------
-# Router definition — all auth routes under /api/v1/auth
+# Router definition
 # ---------------------------------------------------------------------------
 router = APIRouter(
     prefix="/api/v1/auth",
     tags=["authentication"],
 )
 
-# Service instance (stateless — safe to reuse across requests)
+# Service instance (stateless — safe to share across requests)
 auth_service = AuthService()
 
 
@@ -57,51 +61,49 @@ auth_service = AuthService()
     "/login",
     response_model=None,
     summary="Authenticate with email and password",
-    description=(
-        "Validates credentials and returns JWT access token + refresh token. "
-        "If MFA is enabled, returns mfa_required=true and the client must "
-        "call /mfa/verify before accessing protected endpoints."
-    ),
+    description="Validates credentials and returns JWT access token + refresh token. "
+    "Account is locked after 5 failed attempts within 10 minutes.",
 )
-async def login(request: Request, body: LoginRequest):
+async def login(request: Request, body: LoginRequest) -> JSONResponse:
     """
     Authenticate a user and issue tokens.
 
-    Flow:
-    1. Validate email/password against stored credentials
-    2. Check account lockout status
-    3. Issue access token (15 min) + refresh token (7 days)
-    4. If MFA enabled, flag that verification is still needed
+    On success: returns access_token (15min) + refresh_token (7d).
+    On failure: returns 401 with generic message (never reveals if email exists).
 
-    Returns 401 for invalid credentials (same message whether email
-    doesn't exist or password is wrong — prevents email enumeration).
+    If MFA is enabled, mfa_required=true in response — client must call
+    /mfa/verify before the access token is fully activated.
     """
+    request_id = getattr(request.state, "request_id", "unknown")
+
     # Extract client metadata for audit trail and anomaly detection
     client_ip = request.client.host if request.client else None
     user_agent = request.headers.get("User-Agent")
 
-    # Get database session (no tenant context needed for login)
-    async for db in get_db():
-        result = await auth_service.authenticate(
-            db=db,
-            email=body.email,
-            password=body.password,
-            ip_address=client_ip,
-            user_agent=user_agent,
-        )
+    # Get a database session for this request
+    factory = get_session_factory()
+    async with factory() as db:
+        try:
+            result = await auth_service.authenticate(
+                db=db,
+                email=body.email,
+                password=body.password,
+                ip_address=client_ip,
+                user_agent=user_agent,
+            )
 
-        request_id = getattr(request.state, "request_id", "unknown")
-
-        return JSONResponse(
-            status_code=200,
-            content={
-                "success": True,
-                "data": result,
-                "meta": {
-                    "request_id": request_id,
+            return JSONResponse(
+                status_code=200,
+                content={
+                    "success": True,
+                    "data": result,
+                    "meta": {"request_id": request_id},
                 },
-            },
-        )
+            )
+
+        except Exception as e:
+            # Re-raise — global exception handler will format the response
+            raise
 
 
 # ---------------------------------------------------------------------------
@@ -111,23 +113,25 @@ async def login(request: Request, body: LoginRequest):
     "/refresh",
     response_model=None,
     summary="Refresh access token using refresh token",
-    description=(
-        "Rotates the refresh token and issues a new access token + refresh token pair. "
-        "The old refresh token is immediately invalidated. If a revoked token is "
-        "presented (reuse attack), ALL tokens in that session family are invalidated."
-    ),
+    description="Rotates the refresh token and issues a new access token. "
+    "If the submitted token was already revoked (reuse attack), "
+    "the entire token family is invalidated for security.",
 )
-async def refresh(request: Request, body: RefreshRequest):
+async def refresh_token(request: Request, body: RefreshRequest) -> JSONResponse:
     """
     Rotate refresh token and issue new token pair.
 
-    Security: If a revoked token is reused (indicates theft), the entire
-    token family is invalidated — both attacker and user must re-login.
+    Token rotation security:
+    - Old token is revoked immediately
+    - New token inherits the same family_id
+    - If a revoked token is reused → entire family invalidated
     """
+    request_id = getattr(request.state, "request_id", "unknown")
     client_ip = request.client.host if request.client else None
     user_agent = request.headers.get("User-Agent")
 
-    async for db in get_db():
+    factory = get_session_factory()
+    async with factory() as db:
         result = await auth_service.rotate_refresh_token(
             db=db,
             refresh_token_value=body.refresh_token,
@@ -135,16 +139,12 @@ async def refresh(request: Request, body: RefreshRequest):
             user_agent=user_agent,
         )
 
-        request_id = getattr(request.state, "request_id", "unknown")
-
         return JSONResponse(
             status_code=200,
             content={
                 "success": True,
                 "data": result,
-                "meta": {
-                    "request_id": request_id,
-                },
+                "meta": {"request_id": request_id},
             },
         )
 
@@ -156,32 +156,29 @@ async def refresh(request: Request, body: RefreshRequest):
     "/logout",
     response_model=None,
     summary="Revoke refresh token (end session)",
-    description=(
-        "Revokes the specified refresh token. The associated access token "
-        "will naturally expire within 15 minutes. For immediate access "
-        "revocation, the client should also discard the access token."
-    ),
+    description="Revokes the specified refresh token. The access token "
+    "will naturally expire within 15 minutes. For immediate "
+    "access revocation, the client should discard the access token.",
 )
-async def logout(request: Request, body: LogoutRequest):
+async def logout(request: Request, body: LogoutRequest) -> JSONResponse:
     """
     Revoke a refresh token to end the session.
 
     Only revokes the specific token — other sessions (devices) remain active.
     The access token continues working until its 15-min expiry (stateless JWT).
     """
-    async for db in get_db():
-        await auth_service.logout(db=db, refresh_token_value=body.refresh_token)
+    request_id = getattr(request.state, "request_id", "unknown")
 
-        request_id = getattr(request.state, "request_id", "unknown")
+    factory = get_session_factory()
+    async with factory() as db:
+        await auth_service.logout(db=db, refresh_token_value=body.refresh_token)
 
         return JSONResponse(
             status_code=200,
             content={
                 "success": True,
                 "data": {"message": "Successfully logged out"},
-                "meta": {
-                    "request_id": request_id,
-                },
+                "meta": {"request_id": request_id},
             },
         )
 
@@ -193,28 +190,23 @@ async def logout(request: Request, body: LogoutRequest):
     "/mfa/verify",
     response_model=None,
     summary="Verify MFA TOTP code",
-    description=(
-        "Verifies the 6-digit TOTP code from the user's authenticator app. "
-        "Must be called after login when mfa_required=true. Accepts codes "
-        "from current and previous time window (30s tolerance for clock drift)."
-    ),
+    description="Verifies the 6-digit TOTP code from the user's authenticator app. "
+    "Required after login if MFA is enabled for the user.",
 )
-async def verify_mfa(request: Request, body: MFAVerifyRequest):
+async def verify_mfa(request: Request, body: MFAVerifyRequest) -> JSONResponse:
     """
     Verify TOTP MFA code after login.
 
-    This endpoint is called when login returns mfa_required=true.
-    The client must present a valid 6-digit TOTP code to complete
-    authentication and gain full access.
+    This endpoint is called after a successful login when mfa_required=true.
+    The client must present the 6-digit code from their authenticator app.
 
-    TODO: Implement in full when MFA service methods are added.
-    Currently returns a placeholder — MFA verification logic will be
-    completed when the TOTP secret management is implemented.
+    TODO: Full implementation in Task 3.2 (MFA verification logic).
+    Currently returns a stub response.
     """
     request_id = getattr(request.state, "request_id", "unknown")
 
-    # TODO: Implement full MFA verification (Task 3.2 continuation)
-    # For now, return not-implemented response
+    # MFA verification logic will be fully implemented when the
+    # MFA service methods are completed. For now, acknowledge the endpoint exists.
     return JSONResponse(
         status_code=501,
         content={
