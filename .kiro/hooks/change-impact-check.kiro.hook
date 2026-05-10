@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Change Impact Analysis",
+  "description": "Before any write operation, evaluate the impact on existing modules, interfaces, tests, and downstream dependencies. Ensure no existing functionality is broken by the change.",
+  "version": "1",
+  "when": {
+    "type": "preToolUse",
+    "toolTypes": [
+      "write"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Before proceeding with this write operation, perform a change impact analysis:\n1. What existing modules import from or depend on the file being modified?\n2. Does this change alter any function signatures, schemas, or contracts?\n3. Will any existing tests, Celery tasks, event handlers, or API consumers break?\n4. If this is a modification (not a new file), have you read the current file and all its dependents?\n\nIf this is a NEW file with no existing dependents, confirm it's safe and proceed.\nIf this modifies existing code, list the affected modules and confirm all will be updated atomically.\nIf there's risk of regression, stop and plan the full change set before writing."
+  }
+}

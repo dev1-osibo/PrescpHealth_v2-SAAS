@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Auto Push After Task",
+  "description": "After each spec task is marked complete, automatically commit all changes and push to the remote repository so work is preserved between sessions.",
+  "version": "1",
+  "when": {
+    "type": "postTaskExecution"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A spec task was just completed. Commit all staged and unstaged changes with a descriptive commit message following the git-conventions steering rules (format: type(scope): short summary). Then push to the current branch on origin. If no branch exists yet, create one following the branch naming convention (feat/task-description) and push with -u flag. Stage specific files related to the task — avoid git add . unless all changes are related to this task."
+  }
+}
