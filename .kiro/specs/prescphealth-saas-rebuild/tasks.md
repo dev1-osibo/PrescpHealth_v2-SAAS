@@ -134,7 +134,7 @@ This plan breaks the PrescpHealth greenfield rebuild into incremental, modular t
     - **Validates: Requirements 18.4, 18.5, 1.4, 11.6**
 
 - [ ] 5. Patient profile management module
-  - [ ] 5.1 Create patient SQLAlchemy models and migration
+  - [x] 5.1 Create patient SQLAlchemy models and migration
     - Create `backend/app/modules/patients/models.py` with `Patient`, `PatientVersion` models matching design schema
     - Create `backend/app/modules/patients/__init__.py`
     - Generate Alembic migration for `patients`, `patient_versions` tables with RLS policies
