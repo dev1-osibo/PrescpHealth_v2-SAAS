@@ -6,7 +6,7 @@ This plan breaks the PrescpHealth greenfield rebuild into incremental, modular t
 
 ## Tasks
 
-- [-] 1. Project scaffolding and infrastructure setup
+- [ ] 1. Project scaffolding and infrastructure setup
   - [x] 1.1 Initialize monorepo structure with backend, frontend, and ml directories
     - Create top-level `backend/`, `frontend/`, `ml/` directories
     - Create `backend/pyproject.toml` with dependencies: fastapi, uvicorn, sqlalchemy[asyncio], asyncpg, pydantic, pydantic-settings, celery, redis, bcrypt, python-jose, httpx, hypothesis
@@ -117,7 +117,7 @@ This plan breaks the PrescpHealth greenfield rebuild into incremental, modular t
     - _Requirements: 2.1, 2.4, 2.7_
 
 - [ ] 4. Audit log module
-  - [ ] 4.1 Create audit log model and migration
+  - [x] 4.1 Create audit log model and migration
     - Create `backend/app/core/audit.py` with `AuditLog` SQLAlchemy model matching design schema
     - Generate Alembic migration for `audit_logs` table with NO UPDATE/DELETE grants, insert-only via `audit_writer` role
     - Implement monthly partitioning for 7-year retention
