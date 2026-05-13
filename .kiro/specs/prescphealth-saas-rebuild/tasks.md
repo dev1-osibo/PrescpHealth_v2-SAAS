@@ -129,7 +129,7 @@ This plan breaks the PrescpHealth greenfield rebuild into incremental, modular t
     - Ensure append-only: no delete/update methods exposed
     - _Requirements: 18.4, 18.5, 1.4_
 
-  - [ ]* 4.3 Write property test for audit log append-only monotonicity
+  - [x]* 4.3 Write property test for audit log append-only monotonicity
     - **Property 6: Audit Log Append-Only Monotonicity**
     - **Validates: Requirements 18.4, 18.5, 1.4, 11.6**
 
