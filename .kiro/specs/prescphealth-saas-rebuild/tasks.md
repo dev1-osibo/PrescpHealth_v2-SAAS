@@ -116,14 +116,14 @@ This plan breaks the PrescpHealth greenfield rebuild into incremental, modular t
     - Test JWT expiry enforcement (15min access, 7d refresh)
     - _Requirements: 2.1, 2.4, 2.7_
 
-- [ ] 4. Audit log module
+- [x] 4. Audit log module
   - [x] 4.1 Create audit log model and migration
     - Create `backend/app/core/audit.py` with `AuditLog` SQLAlchemy model matching design schema
     - Generate Alembic migration for `audit_logs` table with NO UPDATE/DELETE grants, insert-only via `audit_writer` role
     - Implement monthly partitioning for 7-year retention
     - _Requirements: 18.4, 18.5, 20.3_
 
-  - [ ] 4.2 Implement audit logging service and middleware integration
+  - [x] 4.2 Implement audit logging service and middleware integration
     - Create audit logging helper: `log_audit(tenant_id, user_id, action, resource_type, resource_id, changes, metadata)`
     - Integrate with domain event bus to auto-log CUD operations
     - Ensure append-only: no delete/update methods exposed
