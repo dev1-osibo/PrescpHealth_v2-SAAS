@@ -1,4 +1,4 @@
-﻿"""
+"""
 PrescpHealth Backend — Audit Middleware.
 
 Logs request metadata for every API call — required for HIPAA compliance.
@@ -15,15 +15,24 @@ What this middleware does NOT log (HIPAA PHI protection):
 - Query parameters (may contain search terms with patient names)
 - Authorization header values (contains JWT token)
 
-This is OBSERVABILITY logging, not the clinical AUDIT LOG.
-The clinical audit log (Task 4) records data access/mutations at the
-service layer with full context. This middleware provides the outer
-request envelope for operational monitoring.
+This middleware serves TWO purposes:
+1. OBSERVABILITY logging — structured logs for operational monitoring
+2. AUDIT SERVICE integration — writes authenticated request events to the
+   audit_logs table via AuditService for HIPAA compliance trail
+
+The clinical audit log at the service layer records specific data mutations
+with full context (changes, resource IDs). This middleware provides the
+outer request envelope: who accessed what endpoint, when, from where.
 
 Per logging-observability steering rule:
 - All logs are structured JSON
 - correlation_id flows through the entire request chain
 - Duration is tracked for performance monitoring
+
+Paths excluded from audit DB writes (not authenticated / not relevant):
+- /health — load balancer health checks
+- /docs, /redoc, /openapi.json — API documentation
+- /api/v1/auth/login — pre-authentication (no user context yet)
 """
 
 import time
@@ -38,6 +47,22 @@ from starlette.types import ASGIApp
 # ---------------------------------------------------------------------------
 logger = structlog.get_logger(__name__)
 
+# ---------------------------------------------------------------------------
+# Paths to skip for audit DB writes (unauthenticated or infrastructure)
+# These still get observability logging, just not written to audit_logs table
+# ---------------------------------------------------------------------------
+_SKIP_AUDIT_PATHS = frozenset({
+    "/health",
+    "/docs",
+    "/redoc",
+    "/openapi.json",
+})
+
+# Path prefixes to skip (login is pre-auth, no user context available)
+_SKIP_AUDIT_PREFIXES = (
+    "/api/v1/auth/login",
+)
+
 
 class AuditMiddleware(BaseHTTPMiddleware):
     """
@@ -47,8 +72,9 @@ class AuditMiddleware(BaseHTTPMiddleware):
     This provides the operational audit trail that security teams
     and compliance officers need for HIPAA audits.
 
-    Does NOT replace the clinical audit log (Task 4) which tracks
-    specific data access and mutations at the service layer.
+    For authenticated requests, also writes to the audit_logs table
+    via AuditService — capturing the request as a formal audit entry
+    with tenant isolation, user identity, and request metadata.
     """
 
     def __init__(self, app: ASGIApp) -> None:
@@ -59,8 +85,12 @@ class AuditMiddleware(BaseHTTPMiddleware):
         """
         Log request metadata and response timing.
 
-        Captures start time, passes request through, then logs the
-        complete request/response metadata including duration.
+        Flow:
+        1. Record start time
+        2. Pass request through all downstream handlers
+        3. On completion, log structured observability data
+        4. If authenticated, write audit entry to database
+        5. Flag slow requests for performance investigation
 
         Args:
             request: The incoming HTTP request.
@@ -85,6 +115,7 @@ class AuditMiddleware(BaseHTTPMiddleware):
 
         # Get client IP — may be behind proxy, check X-Forwarded-For
         client_ip = self._get_client_ip(request)
+        user_agent = request.headers.get("User-Agent", "unknown")
 
         # Log the request with full context (but NO PHI)
         logger.info(
@@ -109,7 +140,124 @@ class AuditMiddleware(BaseHTTPMiddleware):
                 threshold_ms=500,
             )
 
+        # Write to audit_logs table for authenticated requests only
+        # Skip health checks, docs, and pre-auth endpoints
+        if self._should_write_audit(request.url.path, user_id, tenant_id):
+            await self._write_audit_entry(
+                tenant_id=tenant_id,
+                user_id=user_id,
+                method=request.method,
+                path=request.url.path,
+                status_code=response.status_code,
+                client_ip=client_ip,
+                user_agent=user_agent,
+                correlation_id=request_id,
+                duration_ms=duration_ms,
+            )
+
         return response
+
+    def _should_write_audit(
+        self, path: str, user_id, tenant_id
+    ) -> bool:
+        """
+        Determine if this request should be written to the audit_logs table.
+
+        Only authenticated requests (with user_id and tenant_id) are written.
+        Infrastructure paths (health, docs) are skipped even if authenticated.
+
+        Args:
+            path: The request URL path.
+            user_id: The authenticated user's ID (None if unauthenticated).
+            tenant_id: The tenant context (None if unauthenticated).
+
+        Returns:
+            True if the request should be audit-logged to the database.
+        """
+        # Must have authentication context
+        if not user_id or not tenant_id:
+            return False
+
+        # Skip infrastructure/documentation paths
+        if path in _SKIP_AUDIT_PATHS:
+            return False
+
+        # Skip pre-authentication paths
+        for prefix in _SKIP_AUDIT_PREFIXES:
+            if path.startswith(prefix):
+                return False
+
+        return True
+
+    async def _write_audit_entry(
+        self,
+        tenant_id,
+        user_id,
+        method: str,
+        path: str,
+        status_code: int,
+        client_ip: str,
+        user_agent: str,
+        correlation_id: str,
+        duration_ms: float,
+    ) -> None:
+        """
+        Write an audit entry to the database via AuditService.
+
+        This is fire-and-forget — if the write fails, the error is logged
+        but the response has already been sent to the client. Audit failures
+        must NEVER affect the user's request.
+
+        The action is formatted as "{METHOD} {path}" to capture the full
+        request context in a single string (e.g., "GET /api/v1/patients").
+
+        Args:
+            tenant_id: Tenant UUID from auth context.
+            user_id: User UUID from auth context.
+            method: HTTP method (GET, POST, PUT, DELETE, PATCH).
+            path: Request URL path.
+            status_code: Response HTTP status code.
+            client_ip: Client's IP address.
+            user_agent: Client's User-Agent header.
+            correlation_id: Request correlation ID for tracing.
+            duration_ms: Request duration in milliseconds.
+        """
+        try:
+            # Import here to avoid circular imports at module load time
+            # (middleware is loaded before modules are fully initialized)
+            from app.modules.audit.service import AuditService
+            from app.core.database import get_session_factory
+
+            audit_service = AuditService()
+            factory = get_session_factory()
+
+            async with factory() as db:
+                await audit_service.log(
+                    db=db,
+                    tenant_id=tenant_id,
+                    user_id=user_id,
+                    action=f"{method} {path}",
+                    resource_type="http_request",
+                    resource_id=None,
+                    metadata={
+                        "ip": client_ip,
+                        "user_agent": user_agent,
+                        "correlation_id": correlation_id,
+                        "status_code": status_code,
+                        "duration_ms": duration_ms,
+                    },
+                )
+                await db.commit()
+
+        except Exception as exc:
+            # CRITICAL: Never let audit DB writes crash the middleware.
+            # The response is already sent — this is best-effort persistence.
+            logger.error(
+                "middleware_audit_write_failed",
+                error_type=type(exc).__name__,
+                error_message=str(exc),
+                path=path,
+            )
 
     def _get_client_ip(self, request: Request) -> str:
         """
