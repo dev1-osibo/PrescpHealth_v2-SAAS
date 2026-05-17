@@ -141,7 +141,7 @@ This plan breaks the PrescpHealth greenfield rebuild into incremental, modular t
     - Add GIN trigram index on `(tenant_id, full_name)` for partial name search
     - _Requirements: 4.1, 4.2, 4.3, 4.5_
 
-  - [-] 5.2 Implement patient service with CRUD, search, versioning, and timeline
+  - [x] 5.2 Implement patient service with CRUD, search, versioning, and timeline
     - Create `backend/app/modules/patients/service.py` with `PatientService`:
       - `create_patient(data)` â†’ assign immutable UUID, store demographics + medical history
       - `update_patient(id, data)` â†’ update fields, create `PatientVersion` record with old/new values

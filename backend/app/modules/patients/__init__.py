@@ -26,5 +26,6 @@ Dependencies:
 """
 
 from app.modules.patients.models import Patient, PatientVersion
+from app.modules.patients.service import PatientService
 
-__all__ = ["Patient", "PatientVersion"]
+__all__ = ["Patient", "PatientVersion", "PatientService"]
