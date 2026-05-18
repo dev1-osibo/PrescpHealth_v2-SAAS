@@ -133,7 +133,7 @@ This plan breaks the PrescpHealth greenfield rebuild into incremental, modular t
     - **Property 6: Audit Log Append-Only Monotonicity**
     - **Validates: Requirements 18.4, 18.5, 1.4, 11.6**
 
-- [ ] 5. Patient profile management module
+- [x] 5. Patient profile management module
   - [x] 5.1 Create patient SQLAlchemy models and migration
     - Create `backend/app/modules/patients/models.py` with `Patient`, `PatientVersion` models matching design schema
     - Create `backend/app/modules/patients/__init__.py`
@@ -150,7 +150,7 @@ This plan breaks the PrescpHealth greenfield rebuild into incremental, modular t
       - `soft_delete(patient_id)` â†’ set `is_deleted=True`, anonymize PII
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 20.1, 20.2_
 
-  - [ ] 5.3 Create patient schemas and router
+  - [x] 5.3 Create patient schemas and router
     - Create `backend/app/modules/patients/schemas.py` with Pydantic schemas for all patient operations
     - Create `backend/app/modules/patients/router.py` with endpoints: `POST /patients`, `GET /patients`, `GET /patients/{id}`, `PUT /patients/{id}`, `GET /patients/{id}/timeline`
     - Apply RBAC: create/update = Doctor/Clinic_Admin, read = Doctor/Nurse/Clinic_Admin
