@@ -32,5 +32,18 @@ Data Flow:
 """
 
 from app.modules.measurements.models import Measurement, MeasurementType
+from app.modules.measurements.validators import (
+    PHYSIOLOGICAL_RANGES,
+    PhysiologicalRange,
+    check_deviation,
+    validate_measurement,
+)
 
-__all__ = ["Measurement", "MeasurementType"]
+__all__ = [
+    "Measurement",
+    "MeasurementType",
+    "PhysiologicalRange",
+    "PHYSIOLOGICAL_RANGES",
+    "validate_measurement",
+    "check_deviation",
+]
