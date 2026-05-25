@@ -7,13 +7,13 @@ This plan breaks the EMR Hospital System into three deployment layers following 
 ## Tasks
 
 - [ ] 1. Code catalogs and shared reference data
-  - [ ] 1.1 Create code catalog model and Alembic migration
+  - [x] 1.1 Create code catalog model and Alembic migration
     - Create `backend/app/modules/code_catalogs/models.py` with `CodeCatalog` model
     - Generate Alembic migration for `code_catalogs` table (shared, NOT tenant-scoped)
     - Add unique constraint `(catalog_type, code)` and GIN trigram index on `display_name_en`
     - _Requirements: 1.3, 2.2, 3.2, 4.6_
 
-  - [ ] 1.2 Implement code catalog service and validation helpers
+  - [~] 1.2 Implement code catalog service and validation helpers
     - Create `backend/app/modules/code_catalogs/service.py` with `CodeCatalogService`
     - `validate_code(catalog_type, code)` → accept if exists and is_active=True, reject otherwise
     - `lookup_code(catalog_type, code)` → return display name in requested locale
@@ -21,7 +21,7 @@ This plan breaks the EMR Hospital System into three deployment layers following 
     - Create `backend/app/modules/code_catalogs/seed.py` with ICD-10, ATC, LOINC seed data
     - _Requirements: 1.3, 2.2, 3.2, 4.6, 15.4_
 
-  - [ ] 1.3 Create code catalog schemas and router
+  - [~] 1.3 Create code catalog schemas and router
     - Create `backend/app/modules/code_catalogs/schemas.py` with Pydantic schemas
     - Create `backend/app/modules/code_catalogs/router.py` with endpoints:
       - `GET /api/v1/codes/{catalog_type}/validate/{code}`
@@ -30,27 +30,27 @@ This plan breaks the EMR Hospital System into three deployment layers following 
     - _Requirements: 1.3, 2.2, 3.2, 4.6_
 
 - [ ] 2. Encounters module (Layer 1 — Core Clinical)
-  - [ ] 2.1 Create encounter SQLAlchemy models and Alembic migration
+  - [~] 2.1 Create encounter SQLAlchemy models and Alembic migration
     - Create `backend/app/modules/encounters/models.py` with `Encounter`, `SOAPNote`, `Diagnosis`, `Procedure` models
     - Create `backend/app/modules/encounters/__init__.py` and `enums.py` with `EncounterStatus`, `EncounterClass`
     - Generate Alembic migration for `encounters`, `soap_notes`, `diagnoses`, `procedures` tables with RLS
     - Add indexes: `(tenant_id, patient_id, check_in_time DESC)`, `(tenant_id, clinician_id, status)`
     - _Requirements: 1.1, 1.7, 13.1_
 
-  - [ ] 2.2 Implement encounter service with SOAP notes, diagnoses, and discharge
+  - [~] 2.2 Implement encounter service with SOAP notes, diagnoses, and discharge
     - Create `backend/app/modules/encounters/service.py` with `EncounterService`
     - Create `backend/app/modules/encounters/service_soap.py` with SOAP note CRUD
     - Create `backend/app/modules/encounters/service_diagnosis.py` with ICD-10 validation and chronic condition sync
     - Generate discharge summary on encounter completion, publish `EncounterCompleted` event
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 16.3_
 
-  - [ ] 2.3 Create encounter FHIR mapper
+  - [~] 2.3 Create encounter FHIR mapper
     - Create `backend/app/modules/encounters/fhir_mapper.py` with `to_fhir()` and `from_fhir()`
     - Map internal Encounter to FHIR R4 Encounter resource (status, class, type, subject, participant, period, reasonCode)
     - Store computed `fhir_json` on encounter creation/update
     - _Requirements: 1.8, 4.1, 4.5_
 
-  - [ ] 2.4 Create encounter schemas and router
+  - [~] 2.4 Create encounter schemas and router
     - Create `backend/app/modules/encounters/schemas.py` with Pydantic request/response schemas
     - Create `backend/app/modules/encounters/router.py`: `POST /encounters`, `GET /encounters`
     - Create `backend/app/modules/encounters/router_detail.py`: `GET/PUT /encounters/{id}`, SOAP notes, diagnoses, procedures, discharge
@@ -58,14 +58,14 @@ This plan breaks the EMR Hospital System into three deployment layers following 
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 13.6_
 
 - [ ] 3. Prescriptions module (Layer 1 — Core Clinical)
-  - [ ] 3.1 Create prescription SQLAlchemy models and Alembic migration
+  - [~] 3.1 Create prescription SQLAlchemy models and Alembic migration
     - Create `backend/app/modules/prescriptions/models.py` with `Prescription`, `Dispensing` models
     - Create `backend/app/modules/prescriptions/__init__.py` and `enums.py` with `PrescriptionStatus`
     - Generate Alembic migration for `prescriptions`, `dispensings` tables with RLS policies
     - Add indexes: `(tenant_id, patient_id, status)`, `(encounter_id)`
     - _Requirements: 2.1, 2.9, 13.1_
 
-  - [ ] 3.2 Implement prescription service with DDI integration and refill logic
+  - [~] 3.2 Implement prescription service with DDI integration and refill logic
     - Create `backend/app/modules/prescriptions/service.py` with `PrescriptionService`
     - Validate ATC code via CodeCatalogService, invoke existing `check_ddi()`/`check_dhi()`
     - Block Contraindicated interactions unless acknowledged with justification
@@ -73,26 +73,26 @@ This plan breaks the EMR Hospital System into three deployment layers following 
     - Publish `PrescriptionWritten` domain event
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 16.2_
 
-  - [ ] 3.3 Create prescription FHIR mapper
+  - [~] 3.3 Create prescription FHIR mapper
     - Create `backend/app/modules/prescriptions/fhir_mapper.py` with `to_fhir()` and `from_fhir()`
     - Map to FHIR R4 MedicationRequest (status, intent, medicationCodeableConcept, dosageInstruction)
     - _Requirements: 2.8, 4.2, 4.5_
 
-  - [ ] 3.4 Create prescription schemas and router
+  - [~] 3.4 Create prescription schemas and router
     - Create `backend/app/modules/prescriptions/schemas.py` with Pydantic schemas
     - Create `backend/app/modules/prescriptions/router.py`: `POST /prescriptions`, `GET /prescriptions`, `GET /prescriptions/{id}`, `PUT /prescriptions/{id}/status`, `POST /prescriptions/{id}/refill`, `GET /patients/{id}/prescriptions`
     - Apply RBAC: write/discontinue/refill = Doctor, read = Doctor/Nurse
     - _Requirements: 2.1, 2.5, 2.7, 13.6_
 
 - [ ] 4. Lab orders module (Layer 1 — Core Clinical)
-  - [ ] 4.1 Create lab order SQLAlchemy models and Alembic migration
+  - [~] 4.1 Create lab order SQLAlchemy models and Alembic migration
     - Create `backend/app/modules/lab_orders/models.py` with `LabOrder`, `LabResult` models
     - Create `backend/app/modules/lab_orders/__init__.py` and `enums.py` with `LabOrderStatus`, `Priority`
     - Generate Alembic migration for `lab_orders`, `lab_results` tables with RLS policies
     - Add indexes: `(tenant_id, patient_id, status)`, `(encounter_id)`, `(tenant_id, status, priority)`
     - _Requirements: 3.1, 3.8, 13.1_
 
-  - [ ] 4.2 Implement lab order service with measurement integration
+  - [~] 4.2 Implement lab order service with measurement integration
     - Create `backend/app/modules/lab_orders/service.py` with `LabOrderService`
     - Validate LOINC code via CodeCatalogService, handle status transitions
     - Create `backend/app/modules/lab_orders/service_results.py`:
@@ -101,14 +101,14 @@ This plan breaks the EMR Hospital System into three deployment layers following 
     - Publish `LabResultReceived` domain event
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 16.1, 16.6_
 
-  - [ ] 4.3 Create lab order FHIR mapper
+  - [~] 4.3 Create lab order FHIR mapper
     - Create `backend/app/modules/lab_orders/fhir_mapper.py`
     - `order_to_fhir()` → FHIR R4 ServiceRequest
     - `result_to_fhir()` → FHIR R4 DiagnosticReport + Observation
     - `from_fhir_order()` / `from_fhir_result()` → parse back to internal models
     - _Requirements: 3.7, 4.3, 4.5_
 
-  - [ ] 4.4 Create lab order schemas and router
+  - [~] 4.4 Create lab order schemas and router
     - Create `backend/app/modules/lab_orders/schemas.py` with Pydantic schemas
     - Create `backend/app/modules/lab_orders/router.py`: `POST /lab-orders`, `GET /lab-orders`, `GET /lab-orders/{id}`, `PUT /lab-orders/{id}/status`, `POST /lab-orders/{id}/results`, `GET /patients/{id}/lab-orders`
     - Apply RBAC: create = Doctor/Nurse, result = Doctor/Nurse, status = Nurse, read = Doctor/Nurse
@@ -173,14 +173,14 @@ This plan breaks the EMR Hospital System into three deployment layers following 
     - Test measurement creation from lab result
     - _Requirements: 3.1, 3.3, 3.5, 3.6_
 
-- [ ] 6. Checkpoint — Verify Layer 1 (Core Clinical Workflow)
+- [~] 6. Checkpoint — Verify Layer 1 (Core Clinical Workflow)
   - Ensure all tests pass, ask the user if questions arise.
   - Verify encounters, prescriptions, and lab orders work end-to-end
   - Verify code catalog validation rejects invalid codes
   - Verify FHIR mappers produce valid JSON
 
 - [ ] 7. Appointments module (Layer 2 — Operational Features)
-  - [ ] 7.1 Create appointment SQLAlchemy models and Alembic migration
+  - [~] 7.1 Create appointment SQLAlchemy models and Alembic migration
     - Create `backend/app/modules/appointments/models.py` with `Appointment`, `Waitlist` models
     - Create `backend/app/modules/appointments/__init__.py` and `enums.py` with `AppointmentStatus`, `AppointmentType`
     - Generate Alembic migration for `appointments`, `waitlist` tables with RLS policies
@@ -188,7 +188,7 @@ This plan breaks the EMR Hospital System into three deployment layers following 
     - Add indexes: `(tenant_id, clinician_id, scheduled_start)`, `(tenant_id, patient_id)`
     - _Requirements: 5.1, 5.8, 13.1_
 
-  - [ ] 7.2 Implement appointment service with conflict detection and recurrence
+  - [~] 7.2 Implement appointment service with conflict detection and recurrence
     - Create `backend/app/modules/appointments/service.py` with `AppointmentService`:
       - `book_appointment(data)` → check for double-booking, create appointment
       - `reschedule(appointment_id, new_time)` → update time, record reason
@@ -197,42 +197,42 @@ This plan breaks the EMR Hospital System into three deployment layers following 
     - Create `backend/app/modules/appointments/service_recurrence.py` for recurring generation
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.8_
 
-  - [ ] 7.3 Create appointment schemas and router
+  - [~] 7.3 Create appointment schemas and router
     - Create `backend/app/modules/appointments/schemas.py` with Pydantic schemas
     - Create `backend/app/modules/appointments/router.py`: `POST /appointments`, `GET /appointments`, `GET /appointments/{id}`, `PUT /appointments/{id}`, `DELETE /appointments/{id}`, `POST /appointments/waitlist`, `GET /patients/{id}/appointments`
     - Apply RBAC: book/reschedule/cancel = Nurse/Clinic_Admin, read = all clinical roles
     - _Requirements: 5.1, 5.7, 13.6_
 
 - [ ] 8. Referrals module (Layer 2 — Operational Features)
-  - [ ] 8.1 Create referral SQLAlchemy models and Alembic migration
+  - [~] 8.1 Create referral SQLAlchemy models and Alembic migration
     - Create `backend/app/modules/referrals/models.py` with `Referral` model
     - Create `backend/app/modules/referrals/__init__.py` and `enums.py` with `ReferralStatus`, `Urgency`
     - Generate Alembic migration for `referrals` table with RLS policies
     - Add indexes: `(tenant_id, patient_id, status)`, `(tenant_id, referring_clinician_id)`
     - _Requirements: 6.1, 6.6, 13.1_
 
-  - [ ] 8.2 Implement referral service
+  - [~] 8.2 Implement referral service
     - Create `backend/app/modules/referrals/service.py` with `ReferralService`:
       - `create_referral(data)` → generate referral letter with clinical summary
       - `update_status(referral_id, new_status)` → handle status transitions
       - `record_completion(referral_id, findings)` → record specialist findings and recommendations
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
 
-  - [ ] 8.3 Create referral schemas and router
+  - [~] 8.3 Create referral schemas and router
     - Create `backend/app/modules/referrals/schemas.py` with Pydantic schemas
     - Create `backend/app/modules/referrals/router.py`: `POST /referrals`, `GET /referrals`, `GET /referrals/{id}`, `PUT /referrals/{id}/status`, `POST /referrals/{id}/completion`
     - Apply RBAC: create/complete = Doctor, read = Doctor/Nurse
     - _Requirements: 6.1, 6.2, 6.5, 13.6_
 
 - [ ] 9. Documents module (Layer 2 — Operational Features)
-  - [ ] 9.1 Create document SQLAlchemy models and Alembic migration
+  - [~] 9.1 Create document SQLAlchemy models and Alembic migration
     - Create `backend/app/modules/documents/models.py` with `Document` model
     - Create `backend/app/modules/documents/__init__.py` and `enums.py` with `DocumentType`
     - Generate Alembic migration for `documents` table with RLS policies
     - Add indexes: `(tenant_id, patient_id, document_type)`, `(tenant_id, created_at DESC)`
     - _Requirements: 7.1, 7.6, 13.1_
 
-  - [ ] 9.2 Implement document service with S3 storage
+  - [~] 9.2 Implement document service with S3 storage
     - Create `backend/app/modules/documents/storage.py` with S3/object storage abstraction
     - Create `backend/app/modules/documents/service.py` with `DocumentService`:
       - `upload_document(file, metadata)` → validate MIME type and size, encrypt, store in S3, save metadata
@@ -241,20 +241,20 @@ This plan breaks the EMR Hospital System into three deployment layers following 
     - Validate: allowed MIME types (PDF, JPEG, PNG, TIFF, DICOM), max 25 MB
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6_
 
-  - [ ] 9.3 Create document schemas and router
+  - [~] 9.3 Create document schemas and router
     - Create `backend/app/modules/documents/schemas.py` with Pydantic schemas
     - Create `backend/app/modules/documents/router.py`: `POST /documents`, `GET /documents`, `GET /documents/{id}`, `GET /documents/{id}/download`, `GET /patients/{id}/documents`
     - Apply RBAC: upload = Doctor/Nurse/Clinic_Admin, read/download = Doctor/Nurse
     - _Requirements: 7.1, 7.4, 7.6, 13.6_
 
 - [ ] 10. Registration module (Layer 2 — Operational Features)
-  - [ ] 10.1 Create registration SQLAlchemy models and Alembic migration
+  - [~] 10.1 Create registration SQLAlchemy models and Alembic migration
     - Create `backend/app/modules/registration/models.py` with `Consent`, `IdentityVerification` models
     - Create `backend/app/modules/registration/__init__.py`
     - Generate Alembic migration for `consents`, `identity_verifications` tables with RLS policies
     - _Requirements: 8.2, 8.3, 8.7, 13.1_
 
-  - [ ] 10.2 Implement registration service with consent capture
+  - [~] 10.2 Implement registration service with consent capture
     - Create `backend/app/modules/registration/service.py` with `RegistrationService`:
       - `start_intake(data)` → create partial registration record
       - `update_registration(id, data)` → update fields for partial completion
@@ -264,7 +264,7 @@ This plan breaks the EMR Hospital System into three deployment layers following 
       - `capture_consent(patient_id, consent_data)` → store digital signature, type, timestamp
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7_
 
-  - [ ] 10.3 Create registration schemas and router
+  - [~] 10.3 Create registration schemas and router
     - Create `backend/app/modules/registration/schemas.py` with Pydantic schemas
     - Create `backend/app/modules/registration/router.py`: `POST /registration/intake`, `PUT /registration/{id}`, `POST /registration/{id}/consent`, `POST /registration/{id}/identity`, `POST /registration/{id}/complete`
     - Apply RBAC: all endpoints = Nurse/Clinic_Admin
@@ -315,20 +315,20 @@ This plan breaks the EMR Hospital System into three deployment layers following 
     - Test MRN generation uniqueness per tenant
     - _Requirements: 8.1, 8.2, 8.5, 8.6, 8.7_
 
-- [ ] 12. Checkpoint — Verify Layer 2 (Operational Features)
+- [~] 12. Checkpoint — Verify Layer 2 (Operational Features)
   - Ensure all tests pass, ask the user if questions arise.
   - Verify appointments with conflict detection work end-to-end
   - Verify referrals, documents, and registration workflows complete successfully
   - Verify tenant isolation across all Layer 2 modules
 
 - [ ] 13. Billing module (Layer 3 — Advanced Operations)
-  - [ ] 13.1 Create billing SQLAlchemy models and Alembic migration
+  - [~] 13.1 Create billing SQLAlchemy models and Alembic migration
     - Create `backend/app/modules/billing/models.py` with `Invoice`, `InvoiceLineItem`, `Payment`, `InsuranceClaim` models
     - Create `backend/app/modules/billing/__init__.py` and `enums.py` with `InvoiceStatus`, `ClaimStatus`, `PaymentMethod`
     - Generate Alembic migration for `invoices`, `invoice_line_items`, `payments`, `insurance_claims` tables with RLS
     - _Requirements: 9.1, 9.7, 13.1_
 
-  - [ ] 13.2 Implement billing service with claims processing
+  - [~] 13.2 Implement billing service with claims processing
     - Create `backend/app/modules/billing/service.py` with `BillingService`:
       - `generate_invoice(encounter_id)` → create invoice with line items from encounter (consultation, procedures, labs, meds)
       - `record_payment(invoice_id, payment_data)` → record payment, update invoice status
@@ -338,14 +338,14 @@ This plan breaks the EMR Hospital System into three deployment layers following 
       - `update_claim_status(claim_id, status, reason)` → handle approval/denial
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7_
 
-  - [ ] 13.3 Create billing schemas and router
+  - [~] 13.3 Create billing schemas and router
     - Create `backend/app/modules/billing/schemas.py` with Pydantic schemas
     - Create `backend/app/modules/billing/router.py`: `POST /invoices`, `GET /invoices`, `GET /invoices/{id}`, `POST /invoices/{id}/payments`, `POST /insurance-claims`, `GET /insurance-claims`, `PUT /insurance-claims/{id}/status`
     - Apply RBAC: all endpoints = Clinic_Admin
     - _Requirements: 9.1, 9.3, 9.5, 13.6_
 
 - [ ] 14. Bed management module (Layer 3 — Advanced Operations)
-  - [ ] 14.1 Create bed management SQLAlchemy models and Alembic migration
+  - [~] 14.1 Create bed management SQLAlchemy models and Alembic migration
     - Create `backend/app/modules/bed_management/models.py` with `Ward`, `Bed`, `Admission`, `NursingNote` models
     - Create `backend/app/modules/bed_management/__init__.py` and `enums.py` with `BedStatus`, `DischargeType`
     - Generate Alembic migration for `wards`, `beds`, `admissions`, `nursing_notes` tables with RLS
@@ -353,7 +353,7 @@ This plan breaks the EMR Hospital System into three deployment layers following 
     - Add indexes: `(tenant_id, status)` on admissions, `(bed_id, status)` on admissions
     - _Requirements: 10.1, 10.2, 10.7, 13.1_
 
-  - [ ] 14.2 Implement bed management service with vitals charting
+  - [~] 14.2 Implement bed management service with vitals charting
     - Create `backend/app/modules/bed_management/service.py` with `BedManagementService`:
       - `admit_patient(data)` → assign bed, update bed status to occupied, record admission
       - `discharge_patient(admission_id, discharge_data)` → generate discharge plan, update bed to available
@@ -364,14 +364,14 @@ This plan breaks the EMR Hospital System into three deployment layers following 
     - Publish `PatientAdmitted` and `PatientDischarged` domain events
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 16.6_
 
-  - [ ] 14.3 Create bed management schemas and router
+  - [~] 14.3 Create bed management schemas and router
     - Create `backend/app/modules/bed_management/schemas.py` with Pydantic schemas
     - Create `backend/app/modules/bed_management/router.py`: `POST /admissions`, `GET /beds`, `GET /admissions/{id}`, `POST /admissions/{id}/nursing-notes`, `POST /admissions/{id}/vitals`, `POST /admissions/{id}/discharge`
     - Apply RBAC: admit/discharge = Doctor, nursing notes/vitals = Nurse, bed status = Nurse/Doctor
     - _Requirements: 10.1, 10.3, 10.4, 10.5, 13.6_
 
 - [ ] 15. FHIR API module (Layer 3 — Advanced Operations)
-  - [ ] 15.1 Implement FHIR service with validation and search
+  - [~] 15.1 Implement FHIR service with validation and search
     - Create `backend/app/modules/fhir_api/service.py` with `FHIRService`:
       - `validate_resource(resource_type, fhir_json)` → validate against FHIR R4 schema
       - `parse_to_internal(resource_type, fhir_json)` → convert FHIR to internal model
@@ -381,7 +381,7 @@ This plan breaks the EMR Hospital System into three deployment layers following 
     - Create `backend/app/modules/fhir_api/__init__.py`
     - _Requirements: 11.1, 11.2, 11.3, 11.7_
 
-  - [ ] 15.2 Implement FHIR router with OAuth and subscriptions
+  - [~] 15.2 Implement FHIR router with OAuth and subscriptions
     - Create `backend/app/modules/fhir_api/router.py`: `GET /fhir/r4/{resourceType}`, `GET /fhir/r4/{resourceType}/{id}`, `POST /fhir/r4/{resourceType}`, `PUT /fhir/r4/{resourceType}/{id}`
     - Create `backend/app/modules/fhir_api/router_bulk.py`: `GET /fhir/r4/$export` for bulk data export
     - Create `backend/app/modules/fhir_api/subscriptions.py` for webhook subscription management
@@ -389,13 +389,13 @@ This plan breaks the EMR Hospital System into three deployment layers following 
     - _Requirements: 11.1, 11.4, 11.5, 11.6_
 
 - [ ] 16. Integration module (Layer 3 — Advanced Operations)
-  - [ ] 16.1 Create integration SQLAlchemy models and Alembic migration
+  - [~] 16.1 Create integration SQLAlchemy models and Alembic migration
     - Create `backend/app/modules/integrations/models.py` with `SyncLog`, `ConnectorConfig` models
     - Create `backend/app/modules/integrations/__init__.py`
     - Generate Alembic migration for `sync_logs`, `connector_configs` tables with RLS
     - _Requirements: 12.6, 12.7, 13.1_
 
-  - [ ] 16.2 Implement integration connectors and sync engine
+  - [~] 16.2 Implement integration connectors and sync engine
     - Create `backend/app/modules/integrations/connectors/openmrs.py` — OpenMRS bidirectional sync
     - Create `backend/app/modules/integrations/connectors/dhis2.py` — DHIS2 aggregate export
     - Create `backend/app/modules/integrations/connectors/generic_fhir.py` — generic FHIR R4 connector
@@ -405,7 +405,7 @@ This plan breaks the EMR Hospital System into three deployment layers following 
     - Create `backend/app/modules/integrations/tasks.py` with Celery tasks for async sync
     - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5, 12.6_
 
-  - [ ] 16.3 Create integration service, schemas, and router
+  - [~] 16.3 Create integration service, schemas, and router
     - Create `backend/app/modules/integrations/service.py` with `IntegrationService`
     - Create `backend/app/modules/integrations/schemas.py` with Pydantic schemas
     - Create `backend/app/modules/integrations/router.py`: connector management endpoints
@@ -454,7 +454,7 @@ This plan breaks the EMR Hospital System into three deployment layers following 
     - Test sync log recording without PHI
     - _Requirements: 12.1, 12.4, 12.5, 12.6_
 
-- [ ] 18. Checkpoint — Verify Layer 3 (Advanced Operations)
+- [~] 18. Checkpoint — Verify Layer 3 (Advanced Operations)
   - Ensure all tests pass, ask the user if questions arise.
   - Verify billing generates correct invoices from encounters
   - Verify bed management tracks admissions and discharges correctly
