@@ -68,7 +68,7 @@ This plan breaks the PrescpHealth greenfield rebuild into incremental, modular t
     - Create `backend/tests/unit/`, `backend/tests/property/`, `backend/tests/integration/` directories
     - _Requirements: 17.1_
 
-- [x] 2. Checkpoint â€” Verify infrastructure
+- [x] 2. Checkpoint -- Verify infrastructure
   - Ensure all infrastructure components initialize correctly, run any existing tests, ask the user if questions arise.
 
 - [ ] 3. Authentication and session management module
@@ -156,18 +156,18 @@ This plan breaks the PrescpHealth greenfield rebuild into incremental, modular t
     - Apply RBAC: create/update = Doctor/Clinic_Admin, read = Doctor/Nurse/Clinic_Admin
     - _Requirements: 4.1, 4.4, 4.6_
 
-  - [ ]* 5.4 Write property test for patient profile version history
+  - [-]* 5.4 Write property test for patient profile version history
     - **Property 16: Patient Profile Version History**
     - **Validates: Requirements 4.5**
 
-  - [ ]* 5.5 Write unit tests for patient module
+  - [x]* 5.5 Write unit tests for patient module
     - Test profile creation with all field types (JSONB diagnoses, family history, allergies)
     - Test search by each filter type (name partial match, risk level, age range, sex)
     - Test timeline ordering (reverse-chronological)
     - Test soft delete with PII anonymization
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6_
 
-- [ ] 6. Checkpoint â€” Verify auth, audit, and patient modules
+- [x] 6. Checkpoint -- Verify auth, audit, and patient modules
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 7. Clinical measurement module
@@ -220,7 +220,7 @@ This plan breaks the PrescpHealth greenfield rebuild into incremental, modular t
     - Test Patient_User submission marked as unvalidated
     - _Requirements: 5.1, 5.2, 5.4, 5.7_
 
-- [ ] 8. Checkpoint â€” Verify measurement module
+- [ ] 8. Checkpoint -- Verify measurement module
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 9. Risk engine module (backend API layer)
@@ -388,7 +388,7 @@ This plan breaks the PrescpHealth greenfield rebuild into incremental, modular t
     - Test health status change re-evaluation
     - _Requirements: 10.2, 10.3, 10.10, 10.11_
 
-- [ ] 13. Checkpoint â€” Verify risk, forecast, AI assistant, and drug interaction modules
+- [ ] 13. Checkpoint -- Verify risk, forecast, AI assistant, and drug interaction modules
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 14. Alert and notification system module
@@ -514,10 +514,10 @@ This plan breaks the PrescpHealth greenfield rebuild into incremental, modular t
     - Implement retry logic: up to 3 retries with exponential backoff (30s, 120s, 480s)
     - _Requirements: 15.4, 15.5_
 
-- [ ] 19. Checkpoint â€” Verify alerts, reports, population, admin, and task status modules
+- [ ] 19. Checkpoint -- Verify alerts, reports, population, admin, and task status modules
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 20. ML engine â€” Risk prediction pipeline
+- [ ] 20. ML engine -- Risk prediction pipeline
   - [ ] 20.1 Implement Bayesian imputation module for missing features
     - Create `ml/risk_engine/imputation.py` with:
       - Population-level Bayesian priors per measurement type (stratified by age, sex, ethnicity)
@@ -527,10 +527,10 @@ This plan breaks the PrescpHealth greenfield rebuild into incremental, modular t
 
   - [ ] 20.2 Implement ensemble risk model with XGBoost, LightGBM, Random Forest, and Neural Network
     - Create `ml/risk_engine/models/` directory with:
-      - `xgboost_model.py` â€” XGBoost classifier per disease
-      - `lightgbm_model.py` â€” LightGBM classifier per disease
-      - `random_forest_model.py` â€” Random Forest classifier per disease
-      - `neural_net_model.py` â€” PyTorch neural network classifier per disease
+      - `xgboost_model.py` -- XGBoost classifier per disease
+      - `lightgbm_model.py` -- LightGBM classifier per disease
+      - `random_forest_model.py` -- Random Forest classifier per disease
+      - `neural_net_model.py` -- PyTorch neural network classifier per disease
     - Create `ml/risk_engine/ensemble.py` with meta-learner (logistic regression) combining base model outputs into final Risk Score (0â€“100)
     - Implement risk stratification: Low (0â€“24), Moderate (25â€“49), High (50â€“74), Critical (75â€“100)
     - _Requirements: 6.1, 6.2, 6.5_
@@ -557,12 +557,12 @@ This plan breaks the PrescpHealth greenfield rebuild into incremental, modular t
     - Test stratification mapping correctness
     - _Requirements: 6.1, 6.2, 6.5, 6.7_
 
-- [ ] 21. ML engine â€” Forecasting pipeline
+- [ ] 21. ML engine -- Forecasting pipeline
   - [ ] 21.1 Implement forecasting ensemble with TFT, LSTM, and Prophet
     - Create `ml/forecast_engine/models/` directory with:
-      - `tft_model.py` â€” Temporal Fusion Transformer for time-series forecasting
-      - `lstm_model.py` â€” LSTM network for sequential prediction
-      - `prophet_model.py` â€” Prophet model for trend/seasonality decomposition
+      - `tft_model.py` -- Temporal Fusion Transformer for time-series forecasting
+      - `lstm_model.py` -- LSTM network for sequential prediction
+      - `prophet_model.py` -- Prophet model for trend/seasonality decomposition
     - Create `ml/forecast_engine/ensemble.py` with weighted ensemble combining outputs with uncertainty quantification
     - Support forecast horizons: 3, 6, 12 months
     - Handle sparse data: use Bayesian priors when patient has limited history
@@ -570,8 +570,8 @@ This plan breaks the PrescpHealth greenfield rebuild into incremental, modular t
 
   - [ ] 21.2 Implement survival analysis with Cox PH and DeepSurv
     - Create `ml/forecast_engine/survival/` directory with:
-      - `cox_ph.py` â€” Cox Proportional Hazards model (lifelines)
-      - `deepsurv.py` â€” DeepSurv neural network (pycox)
+      - `cox_ph.py` -- Cox Proportional Hazards model (lifelines)
+      - `deepsurv.py` -- DeepSurv neural network (pycox)
     - Combine outputs for time-to-event probability estimates per disease
     - _Requirements: 8.4_
 
@@ -598,7 +598,7 @@ This plan breaks the PrescpHealth greenfield rebuild into incremental, modular t
     - Test intervention simulation produces directionally correct results
     - _Requirements: 8.1, 8.5, 8.7_
 
-- [ ] 22. Checkpoint â€” Verify ML engine pipelines
+- [ ] 22. Checkpoint -- Verify ML engine pipelines
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 23. Tenant isolation and security hardening
@@ -629,10 +629,10 @@ This plan breaks the PrescpHealth greenfield rebuild into incremental, modular t
     - Test XSS payloads are sanitized
     - _Requirements: 1.5, 18.3, 18.6_
 
-- [ ] 24. Checkpoint â€” Verify tenant isolation and security
+- [ ] 24. Checkpoint -- Verify tenant isolation and security
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 25. Frontend â€” Project setup and core infrastructure
+- [ ] 25. Frontend -- Project setup and core infrastructure
   - [ ] 25.1 Initialize React/TypeScript frontend with Vite
     - Create `frontend/` project with Vite + React + TypeScript template
     - Configure `vite.config.ts` with API proxy to backend
@@ -660,7 +660,7 @@ This plan breaks the PrescpHealth greenfield rebuild into incremental, modular t
       - `auth.ts`, `patient.ts`, `measurement.ts`, `risk.ts`, `forecast.ts`, `assistant.ts`, `drug.ts`, `alert.ts`, `report.ts`, `population.ts`
     - _Requirements: 16.1_
 
-- [ ] 26. Frontend â€” Common components and auth UI
+- [ ] 26. Frontend -- Common components and auth UI
   - [ ] 26.1 Create common UI component library
     - Create `frontend/src/components/common/` with reusable components:
       - `Button`, `Input`, `Select`, `Modal`, `Table` (sortable, paginated), `Card`, `Badge`, `Spinner`, `Toast`
@@ -670,104 +670,104 @@ This plan breaks the PrescpHealth greenfield rebuild into incremental, modular t
 
   - [ ] 26.2 Create authentication UI components
     - Create `frontend/src/components/auth/`:
-      - `LoginForm` â€” email/password form with error handling
-      - `MFAInput` â€” TOTP code input during login flow
-      - `RoleGuard` â€” component wrapper that checks user role before rendering children
+      - `LoginForm` -- email/password form with error handling
+      - `MFAInput` -- TOTP code input during login flow
+      - `RoleGuard` -- component wrapper that checks user role before rendering children
     - _Requirements: 2.1, 2.4, 3.1_
 
-- [ ] 27. Frontend â€” Patient management UI
+- [ ] 27. Frontend -- Patient management UI
   - [ ] 27.1 Create patient list and search components
     - Create `frontend/src/components/patients/`:
-      - `PatientList` â€” searchable, filterable table with pagination
-      - `PatientSearch` â€” search by name, risk level, disease, age range, sex
-      - `PatientCard` â€” summary card with key demographics and risk indicators
+      - `PatientList` -- searchable, filterable table with pagination
+      - `PatientSearch` -- search by name, risk level, disease, age range, sex
+      - `PatientCard` -- summary card with key demographics and risk indicators
     - _Requirements: 4.4_
 
   - [ ] 27.2 Create patient profile and timeline components
     - Create `frontend/src/components/patients/`:
-      - `PatientProfile` â€” full profile view with demographics, medical history, medications
-      - `PatientTimeline` â€” reverse-chronological timeline of measurements, risk scores, alerts, AI interactions
-      - `PatientCreateForm` â€” form for creating new patient with all required fields
-      - `PatientEditForm` â€” form for updating patient profile
+      - `PatientProfile` -- full profile view with demographics, medical history, medications
+      - `PatientTimeline` -- reverse-chronological timeline of measurements, risk scores, alerts, AI interactions
+      - `PatientCreateForm` -- form for creating new patient with all required fields
+      - `PatientEditForm` -- form for updating patient profile
     - _Requirements: 4.1, 4.2, 4.5, 4.6_
 
-- [ ] 28. Frontend â€” Measurement and risk dashboard UI
+- [ ] 28. Frontend -- Measurement and risk dashboard UI
   - [ ] 28.1 Create measurement entry and visualization components
     - Create `frontend/src/components/measurements/`:
-      - `MeasurementForm` â€” form for entering individual measurements with type-specific validation
-      - `MeasurementChart` â€” time-series chart for measurement history (24+ months)
-      - `BulkImport` â€” CSV upload component with per-row error reporting
-      - `MeasurementValidation` â€” component for clinicians to validate patient-submitted measurements
+      - `MeasurementForm` -- form for entering individual measurements with type-specific validation
+      - `MeasurementChart` -- time-series chart for measurement history (24+ months)
+      - `BulkImport` -- CSV upload component with per-row error reporting
+      - `MeasurementValidation` -- component for clinicians to validate patient-submitted measurements
     - _Requirements: 5.1, 5.2, 5.4, 5.5, 5.7_
 
   - [ ] 28.2 Create risk dashboard and SHAP visualization components
     - Create `frontend/src/components/risk/`:
-      - `RiskDashboard` â€” overview of all 6 disease risk scores with color-coded strata
-      - `RiskGauge` â€” individual disease risk gauge (0â€“100 with stratum coloring)
-      - `SHAPChart` â€” waterfall/bar chart showing top feature contributions per disease
-      - `RiskHistory` â€” historical risk score trend chart
+      - `RiskDashboard` -- overview of all 6 disease risk scores with color-coded strata
+      - `RiskGauge` -- individual disease risk gauge (0â€“100 with stratum coloring)
+      - `SHAPChart` -- waterfall/bar chart showing top feature contributions per disease
+      - `RiskHistory` -- historical risk score trend chart
     - _Requirements: 6.1, 6.3, 6.5_
 
-- [ ] 29. Frontend â€” Forecast, AI assistant, and drug interaction UI
+- [ ] 29. Frontend -- Forecast, AI assistant, and drug interaction UI
   - [ ] 29.1 Create forecast and intervention simulation components
     - Create `frontend/src/components/forecast/`:
-      - `ForecastChart` â€” line chart with point estimates and confidence interval bands at 3/6/12 month horizons
-      - `InterventionSimulator` â€” form to configure intervention parameters, display baseline vs simulated trajectories
-      - `SurvivalCurve` â€” Kaplan-Meier style survival curve visualization
+      - `ForecastChart` -- line chart with point estimates and confidence interval bands at 3/6/12 month horizons
+      - `InterventionSimulator` -- form to configure intervention parameters, display baseline vs simulated trajectories
+      - `SurvivalCurve` -- Kaplan-Meier style survival curve visualization
     - _Requirements: 8.1, 8.3, 8.4, 8.7_
 
   - [ ] 29.2 Create AI assistant chat interface
     - Create `frontend/src/components/assistant/`:
-      - `ChatPanel` â€” conversational interface with message input and history
-      - `MessageBubble` â€” styled message display (user vs assistant) with advisory label
-      - `ContextSidebar` â€” sidebar showing patient context being used by AI
+      - `ChatPanel` -- conversational interface with message input and history
+      - `MessageBubble` -- styled message display (user vs assistant) with advisory label
+      - `ContextSidebar` -- sidebar showing patient context being used by AI
     - _Requirements: 9.1, 9.6_
 
   - [ ] 29.3 Create drug interaction and medication management components
     - Create `frontend/src/components/drugs/`:
-      - `MedicationList` â€” list of active medications with add/edit capability
-      - `InteractionAlert` â€” blocking modal for Contraindicated/Major interactions, non-blocking toast for Moderate/Minor
-      - `SafetySummary` â€” consolidated medication safety status (Safe/Caution/Action Required)
-      - `OverrideForm` â€” form for doctor to override interaction with mandatory justification
+      - `MedicationList` -- list of active medications with add/edit capability
+      - `InteractionAlert` -- blocking modal for Contraindicated/Major interactions, non-blocking toast for Moderate/Minor
+      - `SafetySummary` -- consolidated medication safety status (Safe/Caution/Action Required)
+      - `OverrideForm` -- form for doctor to override interaction with mandatory justification
     - _Requirements: 10.4, 10.5, 10.8, 10.10_
 
-- [ ] 30. Frontend â€” Alerts, reports, and population dashboard UI
+- [ ] 30. Frontend -- Alerts, reports, and population dashboard UI
   - [ ] 30.1 Create alert management components
     - Create `frontend/src/components/alerts/`:
-      - `AlertBanner` â€” top-of-page banner for critical alerts
-      - `AlertHistory` â€” per-patient alert history with severity, channel, acknowledgment status
-      - `ThresholdConfig` â€” form for configuring per-patient alert thresholds
+      - `AlertBanner` -- top-of-page banner for critical alerts
+      - `AlertHistory` -- per-patient alert history with severity, channel, acknowledgment status
+      - `ThresholdConfig` -- form for configuring per-patient alert thresholds
     - _Requirements: 11.1, 11.6, 11.8_
 
   - [ ] 30.2 Create report builder and export components
     - Create `frontend/src/components/reports/`:
-      - `ReportBuilder` â€” interface to generate clinical PDF or referral letter
-      - `PDFPreview` â€” in-browser PDF preview before download
+      - `ReportBuilder` -- interface to generate clinical PDF or referral letter
+      - `PDFPreview` -- in-browser PDF preview before download
       - Export buttons for CSV measurement and population exports
     - _Requirements: 14.1, 14.2, 14.3, 14.4_
 
   - [ ] 30.3 Create population analytics dashboard components
     - Create `frontend/src/components/population/`:
-      - `PopulationDashboard` â€” clinic-level metrics overview (total patients, risk distribution, prevalence)
-      - `WatchlistTable` â€” high-risk patient watchlist (High/Critical), sortable
-      - `TrendChart` â€” cohort-level trend charts with selectable time windows (1/3/6/12 months)
+      - `PopulationDashboard` -- clinic-level metrics overview (total patients, risk distribution, prevalence)
+      - `WatchlistTable` -- high-risk patient watchlist (High/Critical), sortable
+      - `TrendChart` -- cohort-level trend charts with selectable time windows (1/3/6/12 months)
     - _Requirements: 12.1, 12.2, 12.3_
 
-- [ ] 31. Frontend â€” Patient portal (mobile-first)
+- [ ] 31. Frontend -- Patient portal (mobile-first)
   - [ ] 31.1 Create patient portal components
     - Create `frontend/src/components/portal/`:
-      - `PortalDashboard` â€” simplified risk summary in plain language (no raw scores)
-      - `SelfReportForm` â€” form for Patient_User to submit BP, glucose, weight measurements
-      - `PendingValidation` â€” display showing pending clinician validation status
-      - `PortalTimeline` â€” read-only timeline of clinician-entered measurements
-      - `AppointmentReminders` â€” upcoming appointments and reminders
+      - `PortalDashboard` -- simplified risk summary in plain language (no raw scores)
+      - `SelfReportForm` -- form for Patient_User to submit BP, glucose, weight measurements
+      - `PendingValidation` -- display showing pending clinician validation status
+      - `PortalTimeline` -- read-only timeline of clinician-entered measurements
+      - `AppointmentReminders` -- upcoming appointments and reminders
     - Ensure mobile-first responsive design (minimum 320px viewport)
     - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5, 13.6_
 
-- [ ] 32. Checkpoint â€” Verify frontend components
+- [ ] 32. Checkpoint -- Verify frontend components
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 33. Integration wiring â€” Connect all modules end-to-end
+- [ ] 33. Integration wiring -- Connect all modules end-to-end
   - [ ] 33.1 Wire backend routers into FastAPI app
     - Register all module routers in `backend/app/main.py` under `/api/v1/` prefix
     - Register all middleware (Tenant, RateLimit, Audit)
@@ -805,7 +805,7 @@ This plan breaks the PrescpHealth greenfield rebuild into incremental, modular t
     - Configure environment variables, volume mounts, and health checks
     - _Requirements: 19.1, 19.4_
 
-- [ ] 35. Final checkpoint â€” Full system verification
+- [ ] 35. Final checkpoint -- Full system verification
   - Ensure all tests pass across backend, ML engine, and frontend. Verify all module routers are registered, all domain events are wired, and all RBAC rules are enforced. Ask the user if questions arise.
 
 ## Notes
