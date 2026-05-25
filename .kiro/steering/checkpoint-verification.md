@@ -60,13 +60,41 @@ For EVERY file in the completed task group:
 - Exceptions allowed: data registries (validators.py), migrations (self-contained by convention)
 - Split oversized files into focused sub-modules with re-export hubs
 
-### 7. Fix All Issues
+### 7. Forward Compatibility Analysis
+Review the NEXT task group (the tasks that come after this checkpoint) and ask:
+- **Do the current modules provide the interfaces the next tasks need?**
+  - Check domain events: do they carry enough data for downstream subscribers?
+  - Check service methods: are there missing aggregation/extraction methods the next module will need?
+  - Check data models: are there missing fields or relationships the next module expects?
+- **Are there gaps that would force retrofitting later?**
+  - If the next task group needs a "feature vector" from measurements, does that method exist?
+  - If the next task group subscribes to events, do those events carry sufficient context?
+  - If the next task group needs cross-module data, is there an aggregation service?
+- **Create preparatory work items for any gaps found:**
+  - Small additions (new method, extra event field): implement NOW before proceeding
+  - Larger additions (new service, new module): document as a work item with "implement before Task X"
+- **Verify existing contracts won't break:**
+  - Will the next task group need to modify any existing function signatures?
+  - Will it need new columns on existing tables (requiring migrations)?
+  - Will it need new domain events or modifications to existing ones?
+
+Report gaps in this format:
+```
+FORWARD COMPATIBILITY:
+- Gap: [description]
+  Needed by: Task [N]
+  Fix: [what to add/change]
+  When: [NOW / Before Task X]
+```
+
+### 8. Fix All Issues
 - Fix ALL critical and high severity issues before proceeding
 - Fix medium severity issues if time permits
+- Implement all "NOW" forward compatibility items before proceeding
 - Document any accepted low-severity items with justification
 - Re-run test suite after fixes to confirm no regressions
 
-### 8. Git Commit and Push
+### 9. Git Commit and Push
 - Stage all changes from the checkpoint verification
 - Commit with message: `chore(core): checkpoint N verification — [summary of fixes]`
 - Push to current branch
@@ -91,4 +119,5 @@ CHECKPOINT [N] — [PASS/FAIL]
 - HIPAA violations: [count] (fixed: [count])
 - Missing comments: [count] (fixed: [count])
 - Files over limit: [count] (split: [count], accepted: [count])
+- Forward compatibility gaps: [count] (fixed now: [count], deferred: [count])
 ```
