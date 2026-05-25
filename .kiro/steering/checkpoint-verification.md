@@ -87,6 +87,8 @@ FORWARD COMPATIBILITY:
   When: [NOW / Before Task X]
 ```
 
+**Document all findings** in `.kiro/specs/prescphealth-saas-rebuild/forward-compatibility.md` — this is the living backlog of forward compatibility items. Update it at every checkpoint with new findings and mark completed items as ✅ DONE.
+
 ### 8. Fix All Issues
 - Fix ALL critical and high severity issues before proceeding
 - Fix medium severity issues if time permits
