@@ -131,14 +131,17 @@ async def save_measurement(
         notes=notes,
     )
 
-    db.add(measurement)
-
     try:
-        await db.flush()
+        # Use a savepoint (nested transaction) so that an IntegrityError
+        # only rolls back this insert — not the entire session. This is
+        # critical for bulk import where multiple rows share one session.
+        async with db.begin_nested():
+            db.add(measurement)
+            await db.flush()
     except IntegrityError:
         # Race condition: another request created the same measurement
-        # between our idempotency check and insert. Roll back and return existing.
-        await db.rollback()
+        # between our idempotency check and insert. The savepoint was
+        # rolled back automatically, but the outer session remains usable.
         existing = await _check_idempotency(
             db, patient_id, measurement_type_str, recorded_at, value
         )

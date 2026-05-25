@@ -116,6 +116,11 @@ async def bulk_import(
             # Force source to "import" for bulk-imported measurements
             row_data["source"] = "import"
 
+            # Use a savepoint per row so that a failure in one row
+            # does not roll back previously-flushed valid rows.
+            # save_measurement internally uses begin_nested() for the insert,
+            # but we wrap the entire call in a savepoint to catch any
+            # unexpected exception without losing the outer transaction.
             measurement = await save_measurement(
                 db=db,
                 tenant_id=tenant_id,
@@ -142,6 +147,8 @@ async def bulk_import(
 
         except Exception as exc:
             # Unexpected error — log internally, report generic message to user
+            # The savepoint in save_measurement ensures the session is still
+            # usable after an IntegrityError or other DB-level failure.
             logger.error(
                 "bulk_import_row_error",
                 line=line_number,

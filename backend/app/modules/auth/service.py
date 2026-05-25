@@ -148,6 +148,11 @@ class AuthService:
 
         settings = get_settings()
 
+        # Commit all state changes: reset failed attempts, last_login_at,
+        # and the stored refresh token. The router's session context manager
+        # does NOT auto-commit, so we must commit explicitly here.
+        await db.commit()
+
         logger.info("login_successful", user_id=str(user.id), role=user.role)
 
         return {
@@ -281,9 +286,17 @@ class AuthService:
     # -----------------------------------------------------------------------
 
     async def _get_user_by_email(self, db: AsyncSession, email: str) -> User | None:
-        """Find a user by email (RLS ensures tenant isolation)."""
+        """
+        Find a user by email regardless of active status.
+
+        Active status is checked separately in authenticate() so that
+        inactive accounts get a specific error message rather than the
+        generic "Invalid email or password" response.
+
+        RLS ensures tenant isolation at the database level.
+        """
         result = await db.execute(
-            select(User).where(User.email == email, User.is_active == True)
+            select(User).where(User.email == email)
         )
         return result.scalar_one_or_none()
 

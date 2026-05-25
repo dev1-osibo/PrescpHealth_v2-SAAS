@@ -26,6 +26,8 @@ from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
+from app.config import get_settings
+
 # ---------------------------------------------------------------------------
 # Module logger — logs tenant context operations without PHI
 # ---------------------------------------------------------------------------
@@ -105,8 +107,12 @@ class TenantMiddleware(BaseHTTPMiddleware):
         """
         Extract tenant_id claim from the Authorization Bearer token.
 
-        Does NOT validate the token (that's the auth dependency's job).
-        Just extracts the tenant_id claim for RLS context.
+        Decodes the JWT to extract tenant_id for RLS context. Also sets
+        user_id and user_role on request.state for downstream middleware
+        (e.g., RateLimitMiddleware uses user_role for limit tiers).
+
+        Does NOT validate the token for auth purposes (that's the auth
+        dependency's job). Just extracts claims for RLS context.
 
         Returns None if:
         - No Authorization header present
@@ -124,7 +130,32 @@ class TenantMiddleware(BaseHTTPMiddleware):
         if not auth_header or not auth_header.startswith("Bearer "):
             return None
 
-        # Token validation and decoding will be implemented in Task 3 (Auth module)
-        # For now, return None — tenant context will be set once auth is wired
-        # TODO: Decode JWT and extract tenant_id claim (Task 3.2)
-        return None
+        token = auth_header[7:]  # Strip "Bearer " prefix
+
+        try:
+            from jose import jwt
+
+            settings = get_settings()
+            payload = jwt.decode(
+                token,
+                settings.jwt_secret_key,
+                algorithms=[settings.jwt_algorithm],
+            )
+
+            tenant_id = payload.get("tenant_id")
+            user_id = payload.get("sub")
+            role = payload.get("role")
+
+            if not tenant_id or not user_id:
+                return None
+
+            # Set additional claims on request.state for downstream middleware
+            # (e.g., RateLimitMiddleware uses user_role for limit tiers)
+            request.state.user_id = user_id
+            request.state.user_role = role
+
+            return tenant_id
+
+        except Exception:
+            # Invalid/expired token — return None, let auth dependency handle rejection
+            return None
