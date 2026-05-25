@@ -29,9 +29,13 @@ Data Flow:
 """
 
 from app.modules.code_catalogs.enums import CatalogType
+from app.modules.code_catalogs.exceptions import InvalidCodeError
 from app.modules.code_catalogs.models import CodeCatalog
+from app.modules.code_catalogs.service import CodeCatalogService
 
 __all__ = [
     "CatalogType",
     "CodeCatalog",
+    "CodeCatalogService",
+    "InvalidCodeError",
 ]
