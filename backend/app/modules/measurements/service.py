@@ -48,6 +48,11 @@ from app.modules.measurements.bulk_import import (
     BulkImportResult,
     bulk_import,
 )
+from app.modules.measurements.data_sufficiency import (
+    DataSufficiencyResult,
+    check_data_sufficiency,
+)
+from app.modules.measurements.feature_vector import get_feature_vector
 from app.modules.measurements.history import (
     HistoryFilters,
     get_latest_measurements,
@@ -283,3 +288,59 @@ class MeasurementService:
             patient_id=patient_id,
             measurement_type=measurement_type,
         )
+
+    # -----------------------------------------------------------------------
+    # FEATURE VECTOR (Risk Engine Input — Task 9)
+    # -----------------------------------------------------------------------
+    async def get_feature_vector(
+        self,
+        db: AsyncSession,
+        patient_id: uuid.UUID,
+        staleness_threshold_days: int = 90,
+    ) -> dict[str, dict]:
+        """
+        Extract a structured feature vector for the Risk Engine.
+
+        Returns the latest measurement of each type as a dict with
+        value, unit, recorded_at, age_days, is_validated, and is_stale.
+        Measurement types with no data are absent from the result.
+
+        Args:
+            db: Database session (tenant-scoped via RLS).
+            patient_id: UUID of the patient.
+            staleness_threshold_days: Measurements older than this are
+                marked is_stale=True. Default 90 days.
+
+        Returns:
+            Dict keyed by measurement_type with feature metadata.
+            Empty dict if patient has no measurements.
+        """
+        return await get_feature_vector(
+            db=db,
+            patient_id=patient_id,
+            staleness_threshold_days=staleness_threshold_days,
+        )
+
+    # -----------------------------------------------------------------------
+    # DATA SUFFICIENCY CHECK (Risk Engine Pre-Check — Task 9)
+    # -----------------------------------------------------------------------
+    async def check_data_sufficiency(
+        self,
+        db: AsyncSession,
+        patient_id: uuid.UUID,
+    ) -> DataSufficiencyResult:
+        """
+        Check if a patient has sufficient data for each disease model.
+
+        Evaluates validated measurements against the minimum requirements
+        for each of the 6 disease risk models. Returns per-disease status
+        and an overall quality assessment.
+
+        Args:
+            db: Database session (tenant-scoped via RLS).
+            patient_id: UUID of the patient.
+
+        Returns:
+            DataSufficiencyResult with per-disease status and overall quality.
+        """
+        return await check_data_sufficiency(db=db, patient_id=patient_id)

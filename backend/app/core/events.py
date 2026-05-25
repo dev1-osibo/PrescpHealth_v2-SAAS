@@ -85,12 +85,22 @@ class MeasurementSaved(DomainEvent):
     Published when a new clinical measurement is saved.
 
     Triggers: risk recomputation, threshold alert checks, audit logging.
+
+    Forward-compatibility fields (Task 9 & 10):
+    - is_flagged: Allows Risk Engine to prioritize flagged measurements
+    - flag_reason: Provides context for alert generation without re-querying
+    - is_validated: Allows Risk Engine to skip unvalidated Patient_User entries
     """
 
     event_type: str = "measurement_saved"
     patient_id: UUID | None = None
     measurement_type: str = ""
     measurement_id: UUID | None = None
+    # --- Forward-compatibility fields for Risk Engine (Task 9) ---
+    # These have defaults so existing publishers/subscribers are unaffected
+    is_flagged: bool = False
+    flag_reason: str | None = None
+    is_validated: bool = False
 
 
 @dataclass

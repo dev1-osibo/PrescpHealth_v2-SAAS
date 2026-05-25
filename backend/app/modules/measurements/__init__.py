@@ -33,10 +33,16 @@ Data Flow:
 
 from app.modules.measurements.baseline import BaselineResult, compute_baseline
 from app.modules.measurements.bulk_import import BulkImportResult
+from app.modules.measurements.data_sufficiency import (
+    DataSufficiencyResult,
+    DiseaseDataStatus,
+    check_data_sufficiency,
+)
 from app.modules.measurements.exceptions import (
     MeasurementNotFoundError,
     MeasurementValidationForbiddenError,
 )
+from app.modules.measurements.feature_vector import get_feature_vector
 from app.modules.measurements.history import HistoryFilters
 from app.modules.measurements.models import Measurement, MeasurementType
 from app.modules.measurements.service import MeasurementService
@@ -65,6 +71,12 @@ __all__ = [
     "BulkImportResult",
     # History
     "HistoryFilters",
+    # Feature Vector (Task 9 — Risk Engine input)
+    "get_feature_vector",
+    # Data Sufficiency (Task 9 — Risk Engine pre-check)
+    "DataSufficiencyResult",
+    "DiseaseDataStatus",
+    "check_data_sufficiency",
     # Exceptions
     "MeasurementNotFoundError",
     "MeasurementValidationForbiddenError",

@@ -150,6 +150,9 @@ async def save_measurement(
         raise  # Unexpected integrity error — re-raise
 
     # --- Step 5: Publish domain event ---
+    # Forward-compatibility: include flagging and validation status so
+    # downstream consumers (Risk Engine, Alert Service) can react without
+    # re-querying the database for these fields.
     await event_bus.publish(
         MeasurementSaved(
             correlation_id=get_request_id() or str(uuid.uuid4()),
@@ -157,6 +160,9 @@ async def save_measurement(
             patient_id=patient_id,
             measurement_type=measurement_type_str,
             measurement_id=measurement.id,
+            is_flagged=is_flagged,
+            flag_reason=flag_reason,
+            is_validated=is_validated,
         )
     )
 
