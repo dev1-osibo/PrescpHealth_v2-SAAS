@@ -12,7 +12,7 @@ This document tracks gaps identified during checkpoint verification that need to
 ## Checkpoint 8 Findings (After Task 7 — Measurement Module)
 
 ### Gap 1: MeasurementSaved Event Missing Context Fields
-- **Status**: 🔴 BLOCKING
+- **Status**: ✅ DONE
 - **Current**: `MeasurementSaved` carries only `measurement_id`, `measurement_type`, `patient_id`, `tenant_id`
 - **Needed by**: Task 9 (Risk Engine), Task 14 (Alerts)
 - **Problem**: Risk engine needs to know if measurement is validated (skip unvalidated). Alert system needs to know if measurement was flagged (>2σ) to generate alert immediately without re-querying.
@@ -21,7 +21,7 @@ This document tracks gaps identified during checkpoint verification that need to
 - **Effort**: Small (3 fields added to a dataclass + update publish call in save.py)
 
 ### Gap 2: No Feature Vector Extraction Interface
-- **Status**: 🔴 BLOCKING
+- **Status**: ✅ DONE
 - **Current**: `get_latest_measurements()` returns raw Measurement objects
 - **Needed by**: Task 9 (Risk Engine), Task 10 (Forecast Engine)
 - **Problem**: ML models need a structured dict `{measurement_type: {value, unit, recorded_at, age_days, is_validated}}` with metadata about data staleness. Currently the risk engine would have to build this transformation itself, duplicating logic.
@@ -30,7 +30,7 @@ This document tracks gaps identified during checkpoint verification that need to
 - **Effort**: Medium (new method + helper function, ~60 lines)
 
 ### Gap 3: No Data Sufficiency Check
-- **Status**: 🔴 BLOCKING
+- **Status**: ✅ DONE
 - **Current**: No way to ask "does this patient have enough data for risk/forecast computation?"
 - **Needed by**: Task 9 (Risk Engine), Task 10 (Forecast Engine)
 - **Problem**: Design doc specifies `data_quality` field on forecasts (`full_data`, `sparse_data`, `prior_only`). Engines need to know what's available before computing. Without this, the risk engine would have to implement its own sufficiency logic.
@@ -80,9 +80,9 @@ This document tracks gaps identified during checkpoint verification that need to
 
 | Date | Gap | Action | Commit |
 |------|-----|--------|--------|
-| _(pending)_ | Gap 1 | Add fields to MeasurementSaved event | — |
-| _(pending)_ | Gap 2 | Add get_feature_vector() | — |
-| _(pending)_ | Gap 3 | Add check_data_sufficiency() | — |
+| 2025-07-12 | Gap 1 | Added is_flagged, flag_reason, is_validated to MeasurementSaved event | feat/measurement-module |
+| 2025-07-12 | Gap 2 | Created feature_vector.py + added get_feature_vector() to MeasurementService | feat/measurement-module |
+| 2025-07-12 | Gap 3 | Created data_sufficiency.py + added check_data_sufficiency() to MeasurementService | feat/measurement-module |
 
 ---
 
