@@ -31,7 +31,15 @@ Data Flow:
     Risk Engine recomputes scores asynchronously
 """
 
+from app.modules.measurements.baseline import BaselineResult, compute_baseline
+from app.modules.measurements.bulk_import import BulkImportResult
+from app.modules.measurements.exceptions import (
+    MeasurementNotFoundError,
+    MeasurementValidationForbiddenError,
+)
+from app.modules.measurements.history import HistoryFilters
 from app.modules.measurements.models import Measurement, MeasurementType
+from app.modules.measurements.service import MeasurementService
 from app.modules.measurements.validators import (
     PHYSIOLOGICAL_RANGES,
     PhysiologicalRange,
@@ -40,10 +48,24 @@ from app.modules.measurements.validators import (
 )
 
 __all__ = [
+    # Models
     "Measurement",
     "MeasurementType",
+    # Service
+    "MeasurementService",
+    # Validators
     "PhysiologicalRange",
     "PHYSIOLOGICAL_RANGES",
     "validate_measurement",
     "check_deviation",
+    # Baseline
+    "BaselineResult",
+    "compute_baseline",
+    # Bulk Import
+    "BulkImportResult",
+    # History
+    "HistoryFilters",
+    # Exceptions
+    "MeasurementNotFoundError",
+    "MeasurementValidationForbiddenError",
 ]
