@@ -13,7 +13,7 @@ This plan breaks the EMR Hospital System into three deployment layers following 
     - Add unique constraint `(catalog_type, code)` and GIN trigram index on `display_name_en`
     - _Requirements: 1.3, 2.2, 3.2, 4.6_
 
-  - [~] 1.2 Implement code catalog service and validation helpers
+  - [x] 1.2 Implement code catalog service and validation helpers
     - Create `backend/app/modules/code_catalogs/service.py` with `CodeCatalogService`
     - `validate_code(catalog_type, code)` → accept if exists and is_active=True, reject otherwise
     - `lookup_code(catalog_type, code)` → return display name in requested locale
