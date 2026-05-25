@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Checkpoint Verification",
+  "description": "Triggers the full checkpoint verification protocol (tests, imports, code review, HIPAA audit, commenting standards, file size compliance) whenever a spec task containing \"Checkpoint\" is being executed. Ensures no checkpoint is passed without thorough verification.",
+  "version": "1",
+  "when": {
+    "type": "preTaskExecution"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A checkpoint task is about to be executed. You MUST run the full Checkpoint Verification Protocol before marking this task complete. Use the #checkpoint-verification steering file for the complete checklist. The steps are:\n\n1. Run full test suite (python -m pytest backend/tests/ -v --tb=short) — zero failures required\n2. Verify all module imports resolve cleanly across all completed modules\n3. Deep code review: delegate to context-gatherer agent to review ALL files in the task group for logic bugs, race conditions, dead code, missing error handling\n4. HIPAA compliance audit: check every log statement and error message for PHI leakage\n5. Commenting standards: verify every module/class/function has docstrings\n6. File size compliance: flag any file over ~150 lines of logic, split if needed\n7. Fix ALL critical/high issues found before proceeding\n8. Report results in the checkpoint format\n\nDo NOT skip any step. Do NOT mark the checkpoint complete until all issues are resolved."
+  }
+}

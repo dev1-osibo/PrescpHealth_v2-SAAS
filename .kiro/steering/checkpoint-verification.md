@@ -1,0 +1,94 @@
+---
+inclusion: manual
+---
+
+# Checkpoint Verification Protocol — PrescpHealth Rebuild
+
+## When to Use
+
+This protocol is triggered at every checkpoint task in the spec (Tasks 6, 8, 13, 19, 22, 24, 32, 35). It must be completed BEFORE marking the checkpoint as done and BEFORE proceeding to the next task group.
+
+## Verification Steps (All Mandatory)
+
+### 1. Full Test Suite
+Run ALL tests and confirm zero failures:
+```bash
+python -m pytest backend/tests/ -v --tb=short
+```
+- All unit tests pass
+- All property tests pass
+- No flaky tests (run twice if any fail)
+- Test count matches expectations (should only increase, never decrease)
+
+### 2. Import Verification
+Verify all modules in the completed task group import cleanly:
+```python
+# Run a single Python command that imports every public module
+# from the completed task group + all prior modules
+```
+- No circular imports
+- No missing dependencies
+- Cross-module imports resolve correctly
+
+### 3. Deep Code Review (Delegate to context-gatherer agent)
+For EVERY file created or modified in the completed task group:
+- **Logic correctness**: Any bugs, missing error handling, unreachable code, race conditions
+- **Missing try/except**: Any code path that could crash a clinical workflow
+- **SQL injection risk**: Any raw string interpolation in queries
+- **Dead code**: Any unreachable branches or unused imports
+
+### 4. HIPAA Compliance Audit
+For EVERY file in the completed task group:
+- **Log statements**: No patient names, measurement values, diagnoses, or PHI in any log call
+- **Error messages**: No PHI in exception messages or API error responses
+- **Cache headers**: All PHI-containing responses include `Cache-Control: no-store`
+- **Audit trail**: Every CUD operation on patient data creates an audit log entry
+- **SQL echo**: Confirm `echo=True` is NEVER enabled in production config
+
+### 5. Commenting Standards Check
+For EVERY file in the completed task group:
+- **Module docstring**: Present, explains purpose in 1-3 sentences
+- **Class docstrings**: Present on every class, explains responsibility
+- **Function docstrings**: Present on every public function with Args, Returns, Raises
+- **Inline comments**: Explain "why" (business rules, HIPAA requirements), not "what"
+- **PHI field markers**: All PHI columns have `comment="PHI: ..."` in model definitions
+
+### 6. File Size Compliance
+For EVERY file in the completed task group:
+- Count lines of logic (excluding comments, docstrings, blank lines)
+- Flag any file exceeding ~150 lines of logic
+- Exceptions allowed: data registries (validators.py), migrations (self-contained by convention)
+- Split oversized files into focused sub-modules with re-export hubs
+
+### 7. Fix All Issues
+- Fix ALL critical and high severity issues before proceeding
+- Fix medium severity issues if time permits
+- Document any accepted low-severity items with justification
+- Re-run test suite after fixes to confirm no regressions
+
+### 8. Git Commit and Push
+- Stage all changes from the checkpoint verification
+- Commit with message: `chore(core): checkpoint N verification — [summary of fixes]`
+- Push to current branch
+
+## Failure Criteria (Block Proceeding)
+
+Do NOT proceed past a checkpoint if ANY of these are true:
+- Any test fails
+- Any module fails to import
+- Any critical/high logic bug exists
+- Any HIPAA violation exists (PHI in logs or errors)
+- Any public function/class lacks a docstring
+
+## Output Format
+
+After completing all steps, report:
+```
+CHECKPOINT [N] — [PASS/FAIL]
+- Tests: [count] passed, [count] failed
+- Imports: [CLEAN/ISSUES]
+- Logic bugs found: [count] (fixed: [count])
+- HIPAA violations: [count] (fixed: [count])
+- Missing comments: [count] (fixed: [count])
+- Files over limit: [count] (split: [count], accepted: [count])
+```
