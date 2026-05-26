@@ -37,7 +37,7 @@ This plan breaks the EMR Hospital System into three deployment layers following 
     - Add indexes: `(tenant_id, patient_id, check_in_time DESC)`, `(tenant_id, clinician_id, status)`
     - _Requirements: 1.1, 1.7, 13.1_
 
-  - [~] 2.2 Implement encounter service with SOAP notes, diagnoses, and discharge
+  - [x] 2.2 Implement encounter service with SOAP notes, diagnoses, and discharge
     - Create `backend/app/modules/encounters/service.py` with `EncounterService`
     - Create `backend/app/modules/encounters/service_soap.py` with SOAP note CRUD
     - Create `backend/app/modules/encounters/service_diagnosis.py` with ICD-10 validation and chronic condition sync
@@ -65,7 +65,7 @@ This plan breaks the EMR Hospital System into three deployment layers following 
     - Add indexes: `(tenant_id, patient_id, status)`, `(encounter_id)`
     - _Requirements: 2.1, 2.9, 13.1_
 
-  - [~] 3.2 Implement prescription service with DDI integration and refill logic
+  - [x] 3.2 Implement prescription service with DDI integration and refill logic
     - Create `backend/app/modules/prescriptions/service.py` with `PrescriptionService`
     - Validate ATC code via CodeCatalogService, invoke existing `check_ddi()`/`check_dhi()`
     - Block Contraindicated interactions unless acknowledged with justification
@@ -92,7 +92,7 @@ This plan breaks the EMR Hospital System into three deployment layers following 
     - Add indexes: `(tenant_id, patient_id, status)`, `(encounter_id)`, `(tenant_id, status, priority)`
     - _Requirements: 3.1, 3.8, 13.1_
 
-  - [~] 4.2 Implement lab order service with measurement integration
+  - [x] 4.2 Implement lab order service with measurement integration
     - Create `backend/app/modules/lab_orders/service.py` with `LabOrderService`
     - Validate LOINC code via CodeCatalogService, handle status transitions
     - Create `backend/app/modules/lab_orders/service_results.py`:
