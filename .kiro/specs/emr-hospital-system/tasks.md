@@ -6,7 +6,7 @@ This plan breaks the EMR Hospital System into three deployment layers following 
 
 ## Tasks
 
-- [ ] 1. Code catalogs and shared reference data
+- [x] 1. Code catalogs and shared reference data
   - [x] 1.1 Create code catalog model and Alembic migration
     - Create `backend/app/modules/code_catalogs/models.py` with `CodeCatalog` model
     - Generate Alembic migration for `code_catalogs` table (shared, NOT tenant-scoped)
@@ -21,7 +21,7 @@ This plan breaks the EMR Hospital System into three deployment layers following 
     - Create `backend/app/modules/code_catalogs/seed.py` with ICD-10, ATC, LOINC seed data
     - _Requirements: 1.3, 2.2, 3.2, 4.6, 15.4_
 
-  - [~] 1.3 Create code catalog schemas and router
+  - [x] 1.3 Create code catalog schemas and router
     - Create `backend/app/modules/code_catalogs/schemas.py` with Pydantic schemas
     - Create `backend/app/modules/code_catalogs/router.py` with endpoints:
       - `GET /api/v1/codes/{catalog_type}/validate/{code}`
@@ -30,7 +30,7 @@ This plan breaks the EMR Hospital System into three deployment layers following 
     - _Requirements: 1.3, 2.2, 3.2, 4.6_
 
 - [ ] 2. Encounters module (Layer 1 — Core Clinical)
-  - [~] 2.1 Create encounter SQLAlchemy models and Alembic migration
+  - [x] 2.1 Create encounter SQLAlchemy models and Alembic migration
     - Create `backend/app/modules/encounters/models.py` with `Encounter`, `SOAPNote`, `Diagnosis`, `Procedure` models
     - Create `backend/app/modules/encounters/__init__.py` and `enums.py` with `EncounterStatus`, `EncounterClass`
     - Generate Alembic migration for `encounters`, `soap_notes`, `diagnoses`, `procedures` tables with RLS
@@ -58,7 +58,7 @@ This plan breaks the EMR Hospital System into three deployment layers following 
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 13.6_
 
 - [ ] 3. Prescriptions module (Layer 1 — Core Clinical)
-  - [~] 3.1 Create prescription SQLAlchemy models and Alembic migration
+  - [x] 3.1 Create prescription SQLAlchemy models and Alembic migration
     - Create `backend/app/modules/prescriptions/models.py` with `Prescription`, `Dispensing` models
     - Create `backend/app/modules/prescriptions/__init__.py` and `enums.py` with `PrescriptionStatus`
     - Generate Alembic migration for `prescriptions`, `dispensings` tables with RLS policies
@@ -85,7 +85,7 @@ This plan breaks the EMR Hospital System into three deployment layers following 
     - _Requirements: 2.1, 2.5, 2.7, 13.6_
 
 - [ ] 4. Lab orders module (Layer 1 — Core Clinical)
-  - [~] 4.1 Create lab order SQLAlchemy models and Alembic migration
+  - [x] 4.1 Create lab order SQLAlchemy models and Alembic migration
     - Create `backend/app/modules/lab_orders/models.py` with `LabOrder`, `LabResult` models
     - Create `backend/app/modules/lab_orders/__init__.py` and `enums.py` with `LabOrderStatus`, `Priority`
     - Generate Alembic migration for `lab_orders`, `lab_results` tables with RLS policies
