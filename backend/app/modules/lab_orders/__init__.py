@@ -31,6 +31,11 @@ Usage:
 """
 
 from app.modules.lab_orders.enums import LabOrderStatus, LabPriority
+from app.modules.lab_orders.exceptions import (
+    InvalidLabOrderStatusTransitionError,
+    LabOrderAlreadyResultedError,
+    LabOrderNotFoundError,
+)
 from app.modules.lab_orders.models import LabOrder, LabResult
 
 __all__ = [
@@ -38,4 +43,7 @@ __all__ = [
     "LabResult",
     "LabOrderStatus",
     "LabPriority",
+    "LabOrderNotFoundError",
+    "InvalidLabOrderStatusTransitionError",
+    "LabOrderAlreadyResultedError",
 ]

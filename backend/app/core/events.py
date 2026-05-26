@@ -158,6 +158,60 @@ class HealthStatusChanged(DomainEvent):
     change_type: str = ""  # "diagnosis_added", "risk_stratum_changed", "lab_critical"
 
 
+@dataclass
+class LabResultReceived(DomainEvent):
+    """
+    Published when a lab result is recorded for a lab order.
+
+    Triggers: downstream processing, clinical review notifications,
+    and integration with external systems. The abnormal flag allows
+    subscribers to prioritize critical results without re-querying.
+
+    HIPAA: Contains only opaque IDs and the abnormal flag — no PHI
+    (no test names, no result values, no patient names).
+    """
+
+    event_type: str = "lab_result_received"
+    patient_id: UUID | None = None
+    lab_order_id: UUID | None = None
+    lab_result_id: UUID | None = None
+    is_abnormal: bool = False
+    loinc_code: str = ""
+
+
+@dataclass
+class PrescriptionWritten(DomainEvent):
+    """
+    Published when a new prescription is successfully written.
+
+    Triggers: medication list update, potential DDI re-evaluation for
+    other active prescriptions, pharmacy notification.
+
+    HIPAA: Only contains opaque UUIDs — no drug names or dosages.
+    """
+
+    event_type: str = "prescription_written"
+    patient_id: UUID | None = None
+    prescription_id: UUID | None = None
+    encounter_id: UUID | None = None
+
+
+@dataclass
+class EncounterCompleted(DomainEvent):
+    """
+    Published when a clinician completes an encounter (discharge).
+
+    Triggers: billing invoice generation, FHIR resource update,
+    notification to patient portal, care plan finalization.
+
+    The event carries only opaque IDs — no clinical content (PHI-safe).
+    """
+
+    event_type: str = "encounter_completed"
+    encounter_id: UUID | None = None
+    patient_id: UUID | None = None
+
+
 # ---------------------------------------------------------------------------
 # Event Bus — In-Process Pub/Sub
 # ---------------------------------------------------------------------------
