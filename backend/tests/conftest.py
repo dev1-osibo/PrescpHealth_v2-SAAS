@@ -34,6 +34,18 @@ from httpx import ASGITransport, AsyncClient
 from app.config import Settings, get_settings
 from app.main import create_app
 
+# ---------------------------------------------------------------------------
+# Ensure all SQLAlchemy models are imported so mappers resolve correctly.
+# This prevents "name 'X' is not defined" errors when coverage instruments
+# modules in a different order than normal execution.
+# ---------------------------------------------------------------------------
+import app.modules.auth.models  # noqa: F401
+import app.modules.patients.models  # noqa: F401
+import app.modules.measurements.models  # noqa: F401
+import app.modules.encounters.models  # noqa: F401
+import app.modules.prescriptions.models  # noqa: F401
+import app.modules.lab_orders.models  # noqa: F401
+
 
 # ---------------------------------------------------------------------------
 # Override settings for testing

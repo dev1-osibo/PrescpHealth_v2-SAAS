@@ -157,15 +157,17 @@ class Encounter(TenantMixin, Base):
         "SOAPNote",
         back_populates="encounter",
         cascade="all, delete-orphan",
-        order_by="SOAPNote.created_at.desc()",
+        lazy="selectin",
     )
     diagnoses: Mapped[list["Diagnosis"]] = relationship(
         "Diagnosis",
         back_populates="encounter",
         cascade="all, delete-orphan",
+        lazy="selectin",
     )
     procedures: Mapped[list["Procedure"]] = relationship(
         "Procedure",
         back_populates="encounter",
         cascade="all, delete-orphan",
+        lazy="selectin",
     )

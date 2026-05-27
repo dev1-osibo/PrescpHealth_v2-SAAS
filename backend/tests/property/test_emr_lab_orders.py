@@ -86,12 +86,12 @@ class TestAbnormalFlagCorrectness:
     """
 
     @given(
-        numeric_value=numeric_value_strategy,
         ref_range=reference_range_strategy,
+        data=st.data(),
     )
     @settings(max_examples=50, deadline=None)
     def test_property_value_below_low_is_abnormal(
-        self, numeric_value, ref_range
+        self, ref_range, data
     ):
         """
         Property: If numeric_value < reference_range_low, is_abnormal=True.
@@ -102,7 +102,11 @@ class TestAbnormalFlagCorrectness:
         **Validates: Requirements 3.6**
         """
         low, high = ref_range
-        # Ensure value is below the low bound
+        # Generate a value strictly below the low bound (no filtering needed)
+        numeric_value = data.draw(
+            st.floats(min_value=0.01, max_value=max(0.02, low - 0.01),
+                      allow_nan=False, allow_infinity=False)
+        )
         assume(numeric_value < low)
 
         service = LabResultService()
