@@ -29,7 +29,7 @@ This plan breaks the EMR Hospital System into three deployment layers following 
     - No RBAC restriction on code lookup (read-only reference data)
     - _Requirements: 1.3, 2.2, 3.2, 4.6_
 
-- [ ] 2. Encounters module (Layer 1 — Core Clinical)
+- [x] 2. Encounters module (Layer 1 — Core Clinical)
   - [x] 2.1 Create encounter SQLAlchemy models and Alembic migration
     - Create `backend/app/modules/encounters/models.py` with `Encounter`, `SOAPNote`, `Diagnosis`, `Procedure` models
     - Create `backend/app/modules/encounters/__init__.py` and `enums.py` with `EncounterStatus`, `EncounterClass`
@@ -44,20 +44,20 @@ This plan breaks the EMR Hospital System into three deployment layers following 
     - Generate discharge summary on encounter completion, publish `EncounterCompleted` event
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 16.3_
 
-  - [~] 2.3 Create encounter FHIR mapper
+  - [x] 2.3 Create encounter FHIR mapper
     - Create `backend/app/modules/encounters/fhir_mapper.py` with `to_fhir()` and `from_fhir()`
     - Map internal Encounter to FHIR R4 Encounter resource (status, class, type, subject, participant, period, reasonCode)
     - Store computed `fhir_json` on encounter creation/update
     - _Requirements: 1.8, 4.1, 4.5_
 
-  - [~] 2.4 Create encounter schemas and router
+  - [x] 2.4 Create encounter schemas and router
     - Create `backend/app/modules/encounters/schemas.py` with Pydantic request/response schemas
     - Create `backend/app/modules/encounters/router.py`: `POST /encounters`, `GET /encounters`
     - Create `backend/app/modules/encounters/router_detail.py`: `GET/PUT /encounters/{id}`, SOAP notes, diagnoses, procedures, discharge
     - Apply RBAC: create/update/discharge = Doctor, SOAP/diagnoses = Doctor, read = Doctor/Nurse
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 13.6_
 
-- [ ] 3. Prescriptions module (Layer 1 — Core Clinical)
+- [x] 3. Prescriptions module (Layer 1 — Core Clinical)
   - [x] 3.1 Create prescription SQLAlchemy models and Alembic migration
     - Create `backend/app/modules/prescriptions/models.py` with `Prescription`, `Dispensing` models
     - Create `backend/app/modules/prescriptions/__init__.py` and `enums.py` with `PrescriptionStatus`
@@ -73,18 +73,18 @@ This plan breaks the EMR Hospital System into three deployment layers following 
     - Publish `PrescriptionWritten` domain event
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 16.2_
 
-  - [~] 3.3 Create prescription FHIR mapper
+  - [x] 3.3 Create prescription FHIR mapper
     - Create `backend/app/modules/prescriptions/fhir_mapper.py` with `to_fhir()` and `from_fhir()`
     - Map to FHIR R4 MedicationRequest (status, intent, medicationCodeableConcept, dosageInstruction)
     - _Requirements: 2.8, 4.2, 4.5_
 
-  - [~] 3.4 Create prescription schemas and router
+  - [x] 3.4 Create prescription schemas and router
     - Create `backend/app/modules/prescriptions/schemas.py` with Pydantic schemas
     - Create `backend/app/modules/prescriptions/router.py`: `POST /prescriptions`, `GET /prescriptions`, `GET /prescriptions/{id}`, `PUT /prescriptions/{id}/status`, `POST /prescriptions/{id}/refill`, `GET /patients/{id}/prescriptions`
     - Apply RBAC: write/discontinue/refill = Doctor, read = Doctor/Nurse
     - _Requirements: 2.1, 2.5, 2.7, 13.6_
 
-- [ ] 4. Lab orders module (Layer 1 — Core Clinical)
+- [x] 4. Lab orders module (Layer 1 — Core Clinical)
   - [x] 4.1 Create lab order SQLAlchemy models and Alembic migration
     - Create `backend/app/modules/lab_orders/models.py` with `LabOrder`, `LabResult` models
     - Create `backend/app/modules/lab_orders/__init__.py` and `enums.py` with `LabOrderStatus`, `Priority`
@@ -101,14 +101,14 @@ This plan breaks the EMR Hospital System into three deployment layers following 
     - Publish `LabResultReceived` domain event
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 16.1, 16.6_
 
-  - [~] 4.3 Create lab order FHIR mapper
+  - [x] 4.3 Create lab order FHIR mapper
     - Create `backend/app/modules/lab_orders/fhir_mapper.py`
     - `order_to_fhir()` → FHIR R4 ServiceRequest
     - `result_to_fhir()` → FHIR R4 DiagnosticReport + Observation
     - `from_fhir_order()` / `from_fhir_result()` → parse back to internal models
     - _Requirements: 3.7, 4.3, 4.5_
 
-  - [~] 4.4 Create lab order schemas and router
+  - [x] 4.4 Create lab order schemas and router
     - Create `backend/app/modules/lab_orders/schemas.py` with Pydantic schemas
     - Create `backend/app/modules/lab_orders/router.py`: `POST /lab-orders`, `GET /lab-orders`, `GET /lab-orders/{id}`, `PUT /lab-orders/{id}/status`, `POST /lab-orders/{id}/results`, `GET /patients/{id}/lab-orders`
     - Apply RBAC: create = Doctor/Nurse, result = Doctor/Nurse, status = Nurse, read = Doctor/Nurse
