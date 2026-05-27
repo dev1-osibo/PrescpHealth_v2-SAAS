@@ -99,13 +99,18 @@ class TestJWTAccessToken:
 
     def test_decode_access_token_invalid_signature(self):
         """Token with wrong signature should return None."""
+        # Create a valid token, then replace the signature portion entirely
+        # JWT format: header.payload.signature — we replace the signature
         token = create_access_token(
             user_id="user-123",
             tenant_id="tenant-456",
             role="Doctor",
         )
-        # Tamper with the token (change last character)
-        tampered = token[:-1] + ("A" if token[-1] != "A" else "B")
+        # Split into parts and replace signature with a completely different one
+        parts = token.split(".")
+        assert len(parts) == 3, "JWT should have 3 parts"
+        # Replace signature with a known-invalid base64url string
+        tampered = f"{parts[0]}.{parts[1]}.INVALID_SIGNATURE_AAAAAAAAAAAAA"
         payload = decode_access_token(tampered)
         assert payload is None
 
