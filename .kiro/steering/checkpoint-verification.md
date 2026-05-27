@@ -134,12 +134,19 @@ To prevent hung/dead subagents that waste time:
 
 Every checkpoint MUST include real-database integration tests (requires Docker):
 - Spin up PostgreSQL via testcontainers
-- Run ALL Alembic migrations against the real DB
-- Verify RLS actually blocks cross-tenant access
+- Run ALL Alembic migrations against the real DB (from 0001 to latest)
+- **Run ALL tests from ALL modules** (not just the new module) — this catches regressions and cross-module breakage
+- **Test cross-module integration flows from scratch:**
+  - Auth → Patient → Measurement → Risk pipeline (end-to-end data flow)
+  - Encounter → Diagnosis → Patient chronic_conditions sync
+  - Lab Order → Result → Measurement creation → MeasurementSaved event
+  - Prescription → DDI check → Refill → Dispensing
+  - Every new module must be tested in combination with ALL prior modules
+- Verify RLS actually blocks cross-tenant access (query as tenant A, verify tenant B data invisible)
 - Verify unique constraints reject duplicates at the DB level
-- Verify foreign keys enforce referential integrity
-- Test at least one end-to-end flow per module group (create → read → update → verify)
+- Verify foreign keys enforce referential integrity (delete parent, verify child behavior)
 - Test concurrent access patterns where relevant (idempotency, race conditions)
+- **The test count must ONLY increase** — if it decreases, something was deleted or broken
 - If Docker is not available, BLOCK the checkpoint and inform the user
 
 ## Output Format
