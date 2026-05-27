@@ -121,6 +121,27 @@ This project requires **100% accuracy**. No shortcuts, no "good enough", no "we'
 - Every forward compatibility gap must be addressed at the right time
 - Code quality is non-negotiable — this is a solo project where technical debt compounds fast
 
+## Subagent Task Size Limit
+
+To prevent hung/dead subagents that waste time:
+- **Maximum 3 tasks per subagent call** — never batch more than 3 tasks into a single invoke_sub_agent
+- **Maximum scope per task**: one module's model+migration, OR one module's service, OR one module's schemas+router, OR up to 3 test files
+- **If a subagent hasn't returned in 5 minutes**: assume it's dead, report to user, retry with smaller scope
+- **Never dispatch a single subagent call that would take >5 minutes** — split into smaller chunks
+- **After each subagent returns**: immediately report the result to the user before dispatching the next one
+
+## Integration Testing at Every Checkpoint
+
+Every checkpoint MUST include real-database integration tests (requires Docker):
+- Spin up PostgreSQL via testcontainers
+- Run ALL Alembic migrations against the real DB
+- Verify RLS actually blocks cross-tenant access
+- Verify unique constraints reject duplicates at the DB level
+- Verify foreign keys enforce referential integrity
+- Test at least one end-to-end flow per module group (create → read → update → verify)
+- Test concurrent access patterns where relevant (idempotency, race conditions)
+- If Docker is not available, BLOCK the checkpoint and inform the user
+
 ## Output Format
 
 After completing all steps, report:
