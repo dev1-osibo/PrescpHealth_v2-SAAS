@@ -42,19 +42,23 @@ def upgrade() -> None:
     op.execute("""
         -- Create a custom parameter namespace for our app
         -- This allows SET LOCAL app.current_tenant = 'uuid'
-        ALTER DATABASE CURRENT SET app.current_tenant = '';
+        -- Use current_database() to get the actual DB name dynamically
+        DO $$
+        BEGIN
+            EXECUTE format('ALTER DATABASE %I SET app.current_tenant = %L', current_database(), '');
+        END $$;
     """)
 
     # Create a role for audit log writes (insert-only, no update/delete)
     # This role is used by the audit logging service to ensure append-only behavior
     op.execute("""
-        DO done
+        DO $$
         BEGIN
             IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'audit_writer') THEN
                 CREATE ROLE audit_writer;
             END IF;
         END
-        done;
+        $$;
     """)
 
     # Create pg_trgm extension for partial name search (GIN trigram indexes)
@@ -76,12 +80,12 @@ def downgrade() -> None:
     op.execute('DROP EXTENSION IF EXISTS "uuid-ossp";')
     op.execute("DROP EXTENSION IF EXISTS pg_trgm;")
     op.execute("""
-        DO done
+        DO $$
         BEGIN
             IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'audit_writer') THEN
                 DROP ROLE audit_writer;
             END IF;
         END
-        done;
+        $$;
     """)
     op.execute("ALTER DATABASE CURRENT RESET app.current_tenant;")
