@@ -109,6 +109,17 @@ Do NOT proceed past a checkpoint if ANY of these are true:
 - Any critical/high logic bug exists
 - Any HIPAA violation exists (PHI in logs or errors)
 - Any public function/class lacks a docstring
+- Any forward compatibility gap marked "NOW" is unresolved
+
+## Accuracy Standard
+
+This project requires **100% accuracy**. No shortcuts, no "good enough", no "we'll fix it later":
+- Every test must pass (0 failures, 0 flaky tests)
+- Every optional test task must be completed (never skipped)
+- Every file must be reviewed for correctness before moving on
+- Every bug found must be fixed immediately (not deferred)
+- Every forward compatibility gap must be addressed at the right time
+- Code quality is non-negotiable — this is a solo project where technical debt compounds fast
 
 ## Output Format
 
