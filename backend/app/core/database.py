@@ -155,10 +155,17 @@ async def set_tenant_context(session: AsyncSession, tenant_id: str) -> None:
         This is the mechanism that makes cross-tenant access IMPOSSIBLE
         at the database level. Even if application code has a bug that
         doesn't filter by tenant_id, RLS will block the query.
+
+        We validate the tenant_id as a UUID before interpolation to prevent
+        SQL injection. SET LOCAL does not support bind parameters in PostgreSQL.
     """
+    # Validate tenant_id is a proper UUID to prevent SQL injection.
+    # uuid.UUID() raises ValueError if the string is not a valid UUID.
+    import uuid as _uuid
+    validated = str(_uuid.UUID(tenant_id))
+
     await session.execute(
-        text("SET LOCAL app.current_tenant = :tenant_id"),
-        {"tenant_id": tenant_id},
+        text(f"SET LOCAL app.current_tenant = '{validated}'"),
     )
 
 

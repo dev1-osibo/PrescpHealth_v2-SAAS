@@ -126,11 +126,45 @@ def app():
             from app.main import create_app
             test_app = create_app()
 
-            # Register the code_catalogs router for integration testing.
-            # The main app doesn't register routers yet (Task 33 pending),
-            # so we wire it here to prove the full request path works.
+            # --- Register proper exception handlers for domain errors ---
+            from app.core.exception_handlers import register_exception_handlers
+            register_exception_handlers(test_app)
+
+            # --- Add TenantMiddleware so JWT auth context flows correctly ---
+            # The main app doesn't register middleware/routers yet (Task 33),
+            # so we wire them here for full integration testing.
+            # Import directly from the file using importlib.util to avoid
+            # triggering app.core.middleware.__init__.py which imports
+            # RateLimitMiddleware (requires redis package not installed in test).
+            import importlib.util
+            import sys
+            _tenant_spec = importlib.util.spec_from_file_location(
+                "app.core.middleware.tenant",
+                "app/core/middleware/tenant.py",
+            )
+            _tenant_mod = importlib.util.module_from_spec(_tenant_spec)
+            sys.modules["app.core.middleware.tenant"] = _tenant_mod
+            _tenant_spec.loader.exec_module(_tenant_mod)
+            test_app.add_middleware(_tenant_mod.TenantMiddleware)
+
+            # --- Register ALL module routers for integration testing ---
             from app.modules.code_catalogs.router import router as codes_router
+            from app.modules.encounters.router import router as encounters_router
+            from app.modules.prescriptions.router import router as prescriptions_router
+            from app.modules.lab_orders.router import router as lab_orders_router
+            from app.modules.audit.router import router as audit_router
+            from app.modules.patients.router import router as patients_router
+            from app.modules.measurements.router import router as measurements_router
+            from app.modules.measurements.router_detail import detail_router as measurements_detail_router
+
             test_app.include_router(codes_router)
+            test_app.include_router(encounters_router)
+            test_app.include_router(prescriptions_router)
+            test_app.include_router(lab_orders_router)
+            test_app.include_router(audit_router)
+            test_app.include_router(patients_router)
+            test_app.include_router(measurements_router)
+            test_app.include_router(measurements_detail_router)
 
             return test_app
 
@@ -201,7 +235,7 @@ def second_tenant_id() -> uuid.UUID:
 
 
 def generate_test_jwt(
-    user_id: str = "test-user-001",
+    user_id: str = "00000000-0000-0000-0000-000000000099",
     tenant_id: str = TEST_TENANT_UUID,
     role: str = "Doctor",
     expired: bool = False,
