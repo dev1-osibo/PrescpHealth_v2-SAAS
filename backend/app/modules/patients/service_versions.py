@@ -101,9 +101,16 @@ async def get_patient_timeline(
 
     timeline_events: list[dict[str, Any]] = []
     for version in versions:
+        # change_type may be an enum (PatientChangeType) or a plain string
+        # depending on how SQLAlchemy hydrates the column. Handle both safely.
+        change_type_str = (
+            version.change_type.value
+            if hasattr(version.change_type, "value")
+            else version.change_type
+        )
         event = {
             "type": "profile_change",
-            "subtype": version.change_type.value,
+            "subtype": change_type_str,
             "timestamp": version.changed_at.isoformat(),
             "version_number": version.version_number,
             "changed_by": str(version.changed_by),
