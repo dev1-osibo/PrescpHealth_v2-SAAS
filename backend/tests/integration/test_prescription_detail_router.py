@@ -124,7 +124,6 @@ async def test_discontinue_prescription(
 # ---------------------------------------------------------------------------
 @pytest.mark.integration
 @pytest.mark.asyncio
-@pytest.mark.skip(reason="dispensings.updated_at column missing in DB — model/migration mismatch")
 async def test_process_refill(
     client, init_test_db, auth_headers, prescription_detail_data
 ):
@@ -153,7 +152,6 @@ async def test_process_refill(
 # ---------------------------------------------------------------------------
 @pytest.mark.integration
 @pytest.mark.asyncio
-@pytest.mark.skip(reason="dispensings.updated_at column missing in DB — model/migration mismatch")
 async def test_get_prescription_with_dispensings(
     client, init_test_db, auth_headers, prescription_detail_data
 ):

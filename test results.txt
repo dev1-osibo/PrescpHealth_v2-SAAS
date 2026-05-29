@@ -1,0 +1,55 @@
+==================================== test session starts ====================================
+platform win32 -- Python 3.14.4, pytest-9.0.3, pluggy-1.6.0 -- C:\Users\babas\AppData\Local\Python\pythoncore-3.14-64\python.exe
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: C:\Users\babas\Dev_Projects\PrescpHealth\backend
+configfile: pyproject.toml
+plugins: anyio-4.13.0, hypothesis-6.152.4, asyncio-1.3.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 40 items                                                                           
+
+tests/unit/emr/test_encounters.py::TestEncounterCreationStatus::test_creation_sets_status_in_progress PASSED [  2%]
+tests/unit/emr/test_encounters.py::TestValidStatusTransitions::test_planned_to_in_progress PASSED [  5%]
+tests/unit/emr/test_encounters.py::TestValidStatusTransitions::test_in_progress_to_completed PASSED [  7%]
+tests/unit/emr/test_encounters.py::TestValidStatusTransitions::test_in_progress_to_cancelled PASSED [ 10%]
+tests/unit/emr/test_encounters.py::TestInvalidStatusTransitions::test_completed_to_in_progress_raises PASSED [ 12%]
+tests/unit/emr/test_encounters.py::TestInvalidStatusTransitions::test_cancelled_to_in_progress_raises PASSED [ 15%]
+tests/unit/emr/test_encounters.py::TestCompletedEncounterRejectsSoapNotes::test_completed_encounter_raises_already_completed PASSED [ 17%]
+tests/unit/emr/test_encounters.py::TestDischargeSummary::test_summary_contains_diagnoses_list PASSED [ 20%]
+tests/unit/emr/test_encounters.py::TestDischargeSummary::test_summary_contains_procedures_list
+ PASSED [ 22%]
+tests/unit/emr/test_encounters.py::TestEncounterNotFoundError::test_message_contains_encounter_id PASSED [ 25%]
+tests/unit/emr/test_lab_orders.py::TestLabOrderStatusEnum::test_has_five_values PASSED [ 27%] 
+tests/unit/emr/test_lab_orders.py::TestLabOrderStatusEnum::test_values_match_expected PASSED [ 30%]
+tests/unit/emr/test_lab_orders.py::TestLabPriorityEnum::test_has_three_values PASSED   [ 32%] 
+tests/unit/emr/test_lab_orders.py::TestLabPriorityEnum::test_values_match_expected PASSED [ 35%]
+tests/unit/emr/test_lab_orders.py::TestValidLabOrderTransitions::test_ordered_to_specimen_collected PASSED [ 37%]
+tests/unit/emr/test_lab_orders.py::TestValidLabOrderTransitions::test_specimen_collected_to_in_progress PASSED [ 40%]
+tests/unit/emr/test_lab_orders.py::TestValidLabOrderTransitions::test_in_progress_to_resulted PASSED [ 42%]
+tests/unit/emr/test_lab_orders.py::TestValidLabOrderTransitions::test_ordered_to_cancelled PASSED [ 45%]
+tests/unit/emr/test_lab_orders.py::TestResultedIsTerminal::test_resulted_to_anything_is_invalid PASSED [ 47%]
+tests/unit/emr/test_lab_orders.py::TestLabOrderNotFoundError::test_message_contains_order_id PASSED [ 50%]
+tests/unit/emr/test_lab_orders.py::TestLabOrderAlreadyResultedError::test_message_contains_order_id_and_resulted PASSED [ 52%]
+tests/unit/emr/test_lab_orders.py::TestLoincMappingKnownCodes::test_glucose_fasting PASSED [ 55%]
+tests/unit/emr/test_lab_orders.py::TestLoincMappingKnownCodes::test_hba1c PASSED       [ 57%]
+tests/unit/emr/test_lab_orders.py::TestLoincMappingKnownCodes::test_total_cholesterol PASSED [ 60%]
+tests/unit/emr/test_lab_orders.py::TestLoincMappingKnownCodes::test_creatinine PASSED  [ 62%] 
+tests/unit/emr/test_lab_orders.py::TestLoincMappingUnknownCodes::test_unknown_code_returns_none PASSED [ 65%]
+tests/unit/emr/test_lab_orders.py::TestLoincMappingUnknownCodes::test_empty_string_returns_none PASSED [ 67%]
+tests/unit/emr/test_prescriptions.py::TestPrescriptionStatusEnum::test_has_four_values PASSED [ 70%]
+tests/unit/emr/test_prescriptions.py::TestPrescriptionStatusEnum::test_values_match_expected PASSED [ 72%]
+tests/unit/emr/test_prescriptions.py::TestInteractionBlockedError::test_message_mentions_contraindicated PASSED [ 75%]
+tests/unit/emr/test_prescriptions.py::TestInteractionBlockedError::test_stores_interaction_details PASSED [ 77%]
+tests/unit/emr/test_prescriptions.py::TestNoRefillsRemainingError::test_includes_prescription_id PASSED [ 80%]
+tests/unit/emr/test_prescriptions.py::TestInvalidPrescriptionStatusError::test_includes_current_and_required_status PASSED [ 82%]
+tests/unit/emr/test_prescriptions.py::TestPrescriptionNotFoundError::test_message_contains_prescription_id PASSED [ 85%]
+tests/unit/emr/test_prescriptions.py::TestValidPrescriptionTransitions::test_active_to_discontinued PASSED [ 87%]
+tests/unit/emr/test_prescriptions.py::TestValidPrescriptionTransitions::test_active_to_on_hold
+ PASSED [ 90%]
+tests/unit/emr/test_prescriptions.py::TestValidPrescriptionTransitions::test_on_hold_to_active
+ PASSED [ 92%]
+tests/unit/emr/test_prescriptions.py::TestValidPrescriptionTransitions::test_on_hold_to_discontinued PASSED [ 95%]
+tests/unit/emr/test_prescriptions.py::TestInvalidPrescriptionTransitions::test_completed_to_active_raises PASSED [ 97%]
+tests/unit/emr/test_prescriptions.py::TestInvalidPrescriptionTransitions::test_discontinued_to_active_raises PASSED [100%]
+
+==================================== 40 passed in 1.27s ==

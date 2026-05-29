@@ -42,7 +42,7 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID
 
 # Revision identifiers
 revision: str = "0009_lab_order_tables"
-down_revision: Union[str, None] = "0007_encounter_tables"
+down_revision: Union[str, None] = "0008_prescription_tables"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

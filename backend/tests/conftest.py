@@ -138,9 +138,10 @@ def app():
             # RateLimitMiddleware (requires redis package not installed in test).
             import importlib.util
             import sys
+            import os
             _tenant_spec = importlib.util.spec_from_file_location(
                 "app.core.middleware.tenant",
-                "app/core/middleware/tenant.py",
+                os.path.join(os.getcwd(), "backend", "app", "core", "middleware", "tenant.py"),
             )
             _tenant_mod = importlib.util.module_from_spec(_tenant_spec)
             sys.modules["app.core.middleware.tenant"] = _tenant_mod

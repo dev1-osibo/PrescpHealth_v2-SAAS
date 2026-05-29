@@ -149,7 +149,6 @@ async def test_get_specific_patient_version(
 # ---------------------------------------------------------------------------
 @pytest.mark.integration
 @pytest.mark.asyncio
-@pytest.mark.xfail(reason="Pre-existing bug: service_versions.py:106 'str' has no attribute 'value'")
 async def test_get_patient_timeline(
     client, init_test_db, auth_headers, versioned_patient
 ):
