@@ -249,7 +249,7 @@ class RiskScore(TenantMixin, Base):
     )
 
     __table_args__ = (
-        Index("ix_risk_score_patient_disease_computed", "patient_id", "disease", "computed_at DESC"),
+        Index("ix_risk_score_patient_disease_computed", "patient_id", "disease", computed_at.desc()),
         Index("ix_risk_score_computation", "computation_id"),
     )
 
