@@ -6,7 +6,52 @@ This document captures product-level decisions about how PrescpHealth works from
 
 ---
 
-## 1. Disease Selection
+## 1. Global Positioning
+
+**Decision: Built for underserved communities, works everywhere.**
+
+PrescpHealth is NOT an "Africa-only" app. It is a global clinical decision support platform that:
+- Launches in Africa (where the need is greatest and competition is lowest)
+- Works in any country, any clinic, any healthcare system
+- Adapts to local standards, regulations, and workflows via configuration
+
+### What's Configurable Per Tenant (Region-Adaptive)
+
+| Feature | Africa Config | US Config | UK Config | Any Country |
+|---------|--------------|-----------|-----------|-------------|
+| Risk scoring system | WHO/ISH Risk Charts | Framingham | QRISK3 | Configurable per tenant |
+| Languages | English, French, Portuguese | English, Spanish | English | Any (i18n framework) |
+| Insurance providers | NHIS (Nigeria), NHIF (Kenya) | Medicare, Aetna, UHC | NHS | Configurable list |
+| Regulatory compliance | NDPR, POPIA | HIPAA | UK GDPR | Toggle per regulation |
+| Measurement units | Metric (SI) | Imperial option | Metric | Configurable |
+| Currency | NGN, KES, ZAR | USD | GBP | Configurable |
+| Data residency | Africa region | US region | EU region | Per-tenant setting |
+| Performance baseline | 3G optimized | Broadband | Broadband | Adapts to connection |
+
+### What's Already Global (No Configuration Needed)
+
+- **FHIR R4** — international health data exchange standard
+- **ICD-10** — used in 144 countries for disease coding
+- **ATC** — WHO drug classification (global)
+- **LOINC** — universal lab test coding
+- **SNOMED CT** — international clinical terminology
+- **HIPAA-level security** — strictest standard, covers all lesser regulations
+- **Multi-tenant architecture** — each clinic is isolated regardless of country
+- **ML models** — trained on diverse populations, not region-locked
+
+### Market Strategy
+
+1. **Launch market:** Africa (underserved, high NCD burden, low competition)
+2. **Expansion:** Southeast Asia, Latin America (similar profiles)
+3. **Premium market:** US/UK/EU (compete on AI + UX, not just EMR)
+
+The same codebase serves all markets. Regional differences are configuration, not code.
+
+---
+
+## 2. Disease Selection
+
+**Decision: 6 Non-Communicable Diseases (NCDs)**
 
 **Decision: 6 Non-Communicable Diseases (NCDs)**
 
