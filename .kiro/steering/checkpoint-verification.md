@@ -123,6 +123,7 @@ FORWARD COMPATIBILITY:
 - Implement all "NOW" forward compatibility items before proceeding
 - Document any accepted low-severity items with justification
 - Re-run test suite after fixes to confirm no regressions
+- **Import and validate staging code**: If another agent wrote code in a staging directory (e.g., `risk_engine_staging/`), review it against the spec, validate it meets all steering rules, then move it to the canonical location (e.g., `backend/app/modules/risk_engine/`). Run full test suite after import.
 
 ### 11. Git Commit and Push
 - Stage all changes from the checkpoint verification
