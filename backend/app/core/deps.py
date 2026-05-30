@@ -31,6 +31,7 @@ import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_session_factory, set_tenant_context
+from app.core.request_context import get_request_id  # noqa: F401 — re-exported for router convenience
 
 # ---------------------------------------------------------------------------
 # Module logger
@@ -142,3 +143,9 @@ async def get_tenant() -> UUID:
     # TODO: Implement in Task 3.2 (Auth service)
     from app.core.exceptions import AuthError
     raise AuthError(message="Tenant context not yet implemented")
+
+
+# ---------------------------------------------------------------------------
+# Alias: get_tenant_id (used by newer modules that expect this name)
+# ---------------------------------------------------------------------------
+get_tenant_id = get_tenant
