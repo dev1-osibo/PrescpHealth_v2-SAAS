@@ -88,7 +88,7 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(['patient_id'], ['patients.id'], ondelete='CASCADE'),
         sa.ForeignKeyConstraint(['model_version_id'], ['model_versions.id'], ondelete='RESTRICT'),
     )
-    op.create_index('ix_risk_score_patient_disease_computed', 'risk_scores', ['patient_id', 'disease', 'computed_at'], postgresql_order_by={'computed_at': 'DESC'})
+    op.execute("CREATE INDEX ix_risk_score_patient_disease_computed ON risk_scores (patient_id, disease, computed_at DESC);")
     op.create_index('ix_risk_score_computation', 'risk_scores', ['computation_id'])
 
     # Enable RLS on risk_scores
