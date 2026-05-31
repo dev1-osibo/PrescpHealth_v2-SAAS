@@ -167,6 +167,45 @@ def app():
             test_app.include_router(measurements_router)
             test_app.include_router(measurements_detail_router)
 
+            # --- Register new module routers (risk, forecast, ai_assistant, drug_interactions) ---
+            # These routers use prefix-based mounting and need to be nested under
+            # /api/v1/patients/{patient_id} since their endpoints expect patient_id in path.
+            from app.modules.risk_engine.router import router as risk_router
+            from app.modules.forecast_engine.router import router as forecast_router
+            from app.modules.ai_assistant.router import router as ai_router
+            from app.modules.drug_interactions.router import router as drug_router
+
+            test_app.include_router(risk_router, prefix="/api/v1/patients/{patient_id}")
+            test_app.include_router(forecast_router, prefix="/api/v1/patients/{patient_id}")
+            test_app.include_router(ai_router, prefix="/api/v1/patients/{patient_id}")
+            test_app.include_router(drug_router, prefix="/api/v1/patients/{patient_id}")
+
+            # --- Override stub dependencies for new routers ---
+            # The new routers use get_tenant_id and get_current_user from app.core.deps
+            # which are stubs that raise errors. Override them to read from request.state
+            # (set by TenantMiddleware from the JWT).
+            from app.core.deps import get_tenant_id, get_current_user
+
+            async def _test_get_tenant_id(request: Request):
+                """Override: extract tenant_id from request.state (set by TenantMiddleware)."""
+                tid = getattr(request.state, "tenant_id", None)
+                if tid is None:
+                    from app.core.exceptions import AuthError
+                    raise AuthError(message="No tenant context")
+                return uuid.UUID(tid) if isinstance(tid, str) else tid
+
+            async def _test_get_current_user(request: Request):
+                """Override: extract user_id from request.state (set by TenantMiddleware)."""
+                uid = getattr(request.state, "user_id", None)
+                if uid is None:
+                    from app.core.exceptions import AuthError
+                    raise AuthError(message="Not authenticated")
+                return uuid.UUID(uid) if isinstance(uid, str) else uid
+
+            from fastapi import Request
+            test_app.dependency_overrides[get_tenant_id] = _test_get_tenant_id
+            test_app.dependency_overrides[get_current_user] = _test_get_current_user
+
             return test_app
 
 

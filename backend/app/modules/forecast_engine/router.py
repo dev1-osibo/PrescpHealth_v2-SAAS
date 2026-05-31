@@ -20,6 +20,7 @@ HIPAA Compliance:
 """
 
 import uuid
+from datetime import datetime, timezone
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Path, HTTPException, status
@@ -106,7 +107,7 @@ async def trigger_forecast(
             data={"task_id": task_id},
             meta={
                 "request_id": request_id,
-                "timestamp": str(__import__("datetime").datetime.now(uuid.timezone.utc).isoformat()),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         )
 
@@ -278,7 +279,7 @@ async def run_simulation(
             data={"task_id": task_id},
             meta={
                 "request_id": request_id,
-                "timestamp": str(__import__("datetime").datetime.now(uuid.timezone.utc).isoformat()),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         )
 
