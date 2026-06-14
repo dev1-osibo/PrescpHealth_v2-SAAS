@@ -306,12 +306,13 @@ class RiskService:
             )
             risk_scores.append(risk_score)
             self.db.add(risk_score)
+            await self.db.flush()  # Assign ID so we can FK to it
 
-            # SHAP explanation (will be linked after risk_score gets an ID)
+            # SHAP explanation linked to the persisted risk score
             shap_data = score_data.get("shap", {})
             shap = ShapExplanation(
                 tenant_id=self.tenant_id,
-                risk_score=risk_score,  # SQLAlchemy will FK this properly
+                risk_score_id=risk_score.id,
                 base_value=Decimal(str(shap_data.get("base_value", 0.5))),
                 feature_contributions=shap_data.get("features", []),
             )

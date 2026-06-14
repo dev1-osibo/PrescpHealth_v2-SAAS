@@ -1,0 +1,105 @@
+PrescpHealth Session Handover — May 28, 2026
+Project Overview
+PrescpHealth is an AI-powered clinical decision support + EMR SaaS platform predicting risk across 6 NCDs (Stroke, CVD, Diabetes, CKD, Hypertensive Crisis, COPD). Global platform — launches in Africa, works anywhere.
+
+Repository
+GitHub: https://github.com/dev1-osibo/PrescpHealth_v2-SAAS
+Branch: feat/emr-layer1
+Working directory: C:\Users\babas\Dev_Projects\PrescpHealth\
+Infrastructure Running
+PostgreSQL 18: localhost:5432, database: prescphealth_test, user: postgres, password: 2026victory
+Redis: localhost:6379 (started from C:\Users\babas\Downloads\Redis-x64-3.0.504\redis-server.exe)
+All 14 Alembic migrations applied
+Build Status
+Completed (in production code):
+Tasks 1-8: Infrastructure, Auth, Audit, Patients, Measurements, EMR Layer 1 (encounters, prescriptions, lab orders, code catalogs)
+EMR Layer 1 Checkpoint: PASSED (88.52% coverage, 677 tests, 104 integration tests)
+Imported from staging (needs checkpoint verification):
+Task 9: Risk Engine (models, service, tasks, schemas, router)
+Task 10: Forecast Engine (models, service, tasks, schemas, router)
+Task 11: AI Assistant (models, providers with GPT-4o/Claude/Ollama failover, service, router)
+Task 12: Drug Interactions (models, engine, service, schemas, router)
+All in backend/app/modules/ (canonical locations, imports fixed)
+Staging copies still exist in *_staging/ directories (can be deleted after checkpoint passes)
+Checkpoint 13 Status (in progress):
+✅ Step 1: 677 tests pass (pre-import baseline)
+✅ Step 2: 104 integration tests pass
+✅ Step 4: All 4 new modules import cleanly
+✅ Migration 0011 bug fixed (postgresql_order_by → raw SQL)
+✅ All 14 migrations run against real PostgreSQL
+✅ 9 new router tests for Tasks 9-12 written (686 total tests)
+⏳ Step 3: Coverage measurement (needs re-run — timed out last attempt)
+⏳ Steps 5-8: QA agent needs to run (code review, HIPAA, comments, file size)
+⏳ Coverage needs to reach 85% (currently ~65-67% due to new module code)
+Key Documents
+.kiro/specs/prescphealth-saas-rebuild/ — Main spec (requirements, design, tasks)
+.kiro/specs/emr-hospital-system/ — EMR spec (requirements, design, tasks)
+product-design.md
+ — Product decisions (global positioning, diseases, scoring, UX, ML)
+ml-architecture.md
+ — Novel ML architecture with 4 patent candidates
+forward-compatibility.md
+ — Gap tracking
+checkpoint-verification.md
+ — 11-step checkpoint protocol
+QA_AGENT_PROMPT.md — Full prompt for the QA testing agent
+Steering Rules (13 files in .kiro/steering/)
+All inclusion: always — loaded automatically. Key ones:
+
+code-style.md (heavy comments, 150 line max)
+security-hipaa.md (PHI protection, RLS, audit)
+checkpoint-verification.md (11-step protocol, 85% coverage, real DB tests)
+testing-conventions.md (unit/property/integration structure)
+Product Design Decisions Made
+Global positioning — not Africa-locked, configurable per tenant/region
+6 NCDs — Stroke, CVD, Diabetes, CKD, Hypertensive Crisis, COPD (validated by WHO data)
+Scoring — Hybrid: established standards (WHO/ISH, KDIGO, GOLD, Framingham) + ML + unified 0-100 gauge
+Clinical intelligence — On-demand risk scores (click button) + ML-driven smart alerts (learns when to speak)
+Presentation — Layered: glance (gauge) → read (plain language) → deep dive (SHAP, standards)
+ML architecture — Novel ensemble (see below) + LLM for explanation only (never predicts)
+ML Architecture — Patent Candidates (CRITICAL)
+The Novel Framework: "Adaptive Confidence-Weighted Disease Cascade Ensemble"
+5-layer architecture:
+
+Data Assessment — per-patient completeness/freshness scoring
+Disease-Specific Expert Models — different algorithm per disease (TabNet for stroke, CatBoost for diabetes, TFT for COPD, etc.)
+Disease Cascade Network (NOVEL) — GNN where diseases feed into each other (hypertension → stroke, diabetes → CKD → CVD)
+Adaptive Meta-Learner (NOVEL) — weights experts based on data completeness, gracefully degrades to clinical standards when data is sparse
+Explainability + Clinical Silence — SHAP + confidence-aware alerts (knows when to speak vs stay quiet)
+4 Patent Candidates Identified:
+Disease Cascade Network (GNN for multi-disease interaction)
+Adaptive Confidence-Weighted Ensemble (per-patient model weighting)
+Population-Adaptive Bayesian Prior Transfer (cold-start solution)
+Retrieval-Augmented Clinical Prediction (find similar patients)
+2 More Candidates Found (need documentation):
+Counterfactual Clinical Explanations — "What if you lowered BP by 20 points? Your stroke risk would drop from 72 to 45" — actionable, not just descriptive
+Self-Supervised EHR Foundation Model — pre-train on patient trajectories, fine-tune for prediction — handles missing data natively
+Academic Publication Plan:
+File provisional patent FIRST (before publishing)
+Title direction: Focus on AI/analytics, not medicine (you're not in medical field)
+Suggested: "Data-Driven Disease Risk Intelligence: Adaptive Ensemble AI with Population Transfer Learning for Global Health Analytics"
+Target journals: Lancet Digital Health, npj Digital Medicine, JAMIA
+Validation data: MIMIC-IV (free, PhysioNet), UK Biobank (free, approved research), WHO STEPS (free, multi-country)
+Research Still Needed
+⏳ User workflows (Nurse/Doctor/Lab Tech/Patient daily flow) — 2-3 sessions
+⏳ Deeper ML research — need 6-8 total patent claims (have 4-6 so far)
+⏳ Counterfactual explanations — how to implement "what if" scenarios
+⏳ Self-supervised pre-training — how to handle missing data via foundation model approach
+⏳ Federated learning architecture — how to train across tenants without sharing data
+Next Session Priorities
+Finish Checkpoint 13 — QA agent runs steps 5-8, fix coverage to 85%
+Continue ML research — get to 6-8 patent claims, document all
+User workflow research — deep dive into clinical staff daily flows
+Then Tasks 14+ — Alerts, Reports, Population, Admin (after checkpoint passes)
+Agents in Use
+Main agent (Kiro) — orchestrates, builds, reviews
+QA agent — runs checkpoint testing (prompt in QA_AGENT_PROMPT.md)
+Second build agent — completed Tasks 9-12 in staging (now idle, can be given Tasks 14+)
+Key Technical Notes
+conftest.py has all routers registered for integration testing
+Celery + Redis packages installed (pip install celery redis)
+Coverage config at 
+.coveragerc
+ (excludes staging dirs + workers)
+The _staging directories can be deleted after checkpoint 13 passes
+refresh_tokens table has no tenant_id — doc drift noted, needs migration fix

@@ -5,7 +5,7 @@ Tests cover enums, exception hierarchy, schema validation, and escalation logic.
 No real DB connections are made — all tests are pure unit tests.
 
 Run with:
-    pytest backend/tests/unit/test_alerts_staging.py -v
+    pytest backend/tests/unit/test_alerts.py -v
 """
 import uuid
 from datetime import timedelta
@@ -22,7 +22,7 @@ from pydantic import ValidationError
 
 def test_enums_valid() -> None:
     """All expected enum values are present and have correct string values."""
-    from app.modules.alerts_staging.enums import (
+    from app.modules.alerts.enums import (
         AlertType,
         AlertSeverity,
         AlertStatus,
@@ -65,7 +65,7 @@ def test_enums_valid() -> None:
 
 def test_alert_type_values() -> None:
     """All AlertType enum values are strings (required for JSON serialization)."""
-    from app.modules.alerts_staging.enums import AlertType
+    from app.modules.alerts.enums import AlertType
 
     for member in AlertType:
         assert isinstance(member.value, str), (
@@ -80,7 +80,7 @@ def test_alert_type_values() -> None:
 
 def test_exceptions_hierarchy() -> None:
     """All alert exceptions inherit from AlertError base."""
-    from app.modules.alerts_staging.exceptions import (
+    from app.modules.alerts.exceptions import (
         AlertError,
         AlertNotFoundError,
         ThresholdConfigurationError,
@@ -118,7 +118,7 @@ def test_exceptions_hierarchy() -> None:
 
 def test_schema_acknowledge_request_valid() -> None:
     """AcknowledgeAlertRequest accepts valid notes string."""
-    from app.modules.alerts_staging.schemas import AcknowledgeAlertRequest
+    from app.modules.alerts.schemas import AcknowledgeAlertRequest
 
     # With notes
     req = AcknowledgeAlertRequest(notes="Patient called back, situation resolved.")
@@ -131,8 +131,8 @@ def test_schema_acknowledge_request_valid() -> None:
 
 def test_schema_configure_threshold_valid() -> None:
     """ConfigureThresholdRequest validates a well-formed threshold configuration."""
-    from app.modules.alerts_staging.schemas import ConfigureThresholdRequest
-    from app.modules.alerts_staging.enums import ThresholdCondition, AlertSeverity
+    from app.modules.alerts.schemas import ConfigureThresholdRequest
+    from app.modules.alerts.enums import ThresholdCondition, AlertSeverity
 
     req = ConfigureThresholdRequest(
         patient_id=uuid.UUID("00000000-0000-0000-0000-000000000001"),
@@ -152,8 +152,8 @@ def test_schema_configure_threshold_valid() -> None:
 
 def test_schema_threshold_condition_invalid() -> None:
     """ConfigureThresholdRequest rejects an invalid condition value."""
-    from app.modules.alerts_staging.schemas import ConfigureThresholdRequest
-    from app.modules.alerts_staging.enums import AlertSeverity
+    from app.modules.alerts.schemas import ConfigureThresholdRequest
+    from app.modules.alerts.enums import AlertSeverity
 
     with pytest.raises(ValidationError) as exc_info:
         ConfigureThresholdRequest(
@@ -171,7 +171,7 @@ def test_schema_threshold_condition_invalid() -> None:
 
 def test_schema_alert_response_from_dict() -> None:
     """AlertResponse can be constructed from a plain dictionary."""
-    from app.modules.alerts_staging.schemas import AlertResponse
+    from app.modules.alerts.schemas import AlertResponse
     from datetime import datetime, timezone
 
     now = datetime.now(timezone.utc)
@@ -211,7 +211,7 @@ def test_escalation_timeout_logic() -> None:
     Level 0 = 15 minutes (nurse to doctor threshold).
     Level 1 = 30 minutes (doctor to clinic_admin threshold).
     """
-    from app.modules.alerts_staging.escalation import EscalationService
+    from app.modules.alerts.escalation import EscalationService
 
     # Construct a minimal EscalationService without real DB dependencies
     # _get_escalation_timeout is a pure function (no DB interaction)

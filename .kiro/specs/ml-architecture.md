@@ -2,6 +2,12 @@
 
 ## Status: RESEARCH IN PROGRESS — Patent Candidate
 
+**Paper Title:** "An Adaptive AI Framework for Multi-Disease Risk Analytics: Confidence-Weighted Ensemble Learning with Disease Cascade Modeling"
+
+**Target Journal:** npj Digital Medicine (Nature)
+
+**Patent Claims:** 8 (see below)
+
 This document captures the novel ML architecture that forms PrescpHealth's competitive moat and potential patent filing.
 
 ---
@@ -134,6 +140,99 @@ This document captures the novel ML architecture that forms PrescpHealth's compe
 
 ---
 
+## Patent Candidate 4: Retrieval-Augmented Clinical Prediction
+
+**Claim:** A method for augmenting clinical risk predictions by retrieving similar patient trajectories from a de-identified population database, where similarity is computed over temporal health trajectories (not just static features), and retrieved outcomes are used to inform predictions for patients with rare or unusual presentations.
+
+**Why novel:**
+- Ram-EHR and EHR-RAG retrieve text/knowledge to augment LLMs
+- Our system retrieves PATIENT TRAJECTORIES (temporal sequences of measurements and outcomes)
+- Similarity is computed over the trajectory shape, not just current feature values
+- Particularly valuable for rare presentations where the model has limited training data
+
+**Implementation:**
+- Encode patient trajectories into embedding space (temporal autoencoder)
+- Approximate nearest neighbor search over de-identified trajectory database
+- Retrieved outcomes weighted by trajectory similarity
+- Augments expert model predictions for rare/unusual cases
+
+---
+
+## Patent Candidate 5: Counterfactual Cascade Explanations
+
+**Claim:** A method for generating actionable clinical explanations by computing counterfactual scenarios that propagate through a disease interaction graph, showing clinicians how a single intervention (e.g., reducing blood pressure) cascades through multiple disease risk scores simultaneously.
+
+**Why novel:**
+- Existing counterfactual explanations show single-variable, single-outcome changes
+- Our system propagates counterfactuals through the Disease Cascade Network
+- Shows multi-disease impact: "Lower BP by 20 → stroke risk drops 15 points → CVD risk drops 8 points → CKD stabilizes"
+- Provides actionable, prioritized intervention recommendations
+
+**Implementation:**
+- Perturb input feature (e.g., systolic_bp -= 20)
+- Re-run Layer 2 expert models with perturbed input
+- Propagate through Layer 3 cascade network (GNN forward pass)
+- Compare original vs. counterfactual scores across all diseases
+- Rank interventions by total cascade impact
+
+---
+
+## Patent Candidate 6: Self-Supervised EHR Foundation Model with Missingness Encoding
+
+**Claim:** A method for pre-training clinical prediction models using self-supervised learning on electronic health records, where the pattern of missing data is explicitly encoded as a predictive feature, treating the absence of measurements as clinically informative signal rather than noise to be imputed.
+
+**Why novel:**
+- ETHOS/ARES pre-train on available data, treating missing values as gaps to fill
+- Our system encodes WHAT IS MISSING as a feature (a patient not tested for HbA1c in 2 years is different from one tested last week — the absence itself is information)
+- Missingness patterns correlate with clinical behavior (healthy patients get tested less)
+- No published foundation model explicitly uses missingness topology as a predictive signal
+
+**Implementation:**
+- Binary missingness mask per feature per time step
+- Missingness pattern embedding (learned representation of which tests are missing)
+- Self-supervised pre-training objective: predict next measurement AND predict which measurements will be ordered next
+- Fine-tune for disease prediction with missingness-aware attention
+
+---
+
+## Patent Candidate 7: Confidence-Calibrated Clinical Silence
+
+**Claim:** A method for clinical decision support systems that determines when NOT to generate alerts, using calibrated model confidence scores and inter-model agreement metrics to suppress notifications when prediction uncertainty exceeds clinically-defined thresholds, thereby reducing alert fatigue while maintaining safety.
+
+**Why novel:**
+- CURA (2026) does uncertainty alignment for LLMs in clinical settings
+- Existing CDS systems alert whenever a threshold is crossed (binary)
+- Our system has a formal "silence" mechanism: if models disagree or confidence is low, it stays quiet
+- Reduces alert fatigue (a major clinical problem — 90%+ of alerts are overridden)
+- Safety-preserving: high-confidence critical alerts always fire
+
+**Implementation:**
+- Compute prediction confidence per expert model (calibrated via Platt scaling)
+- Compute inter-model agreement (variance across expert predictions)
+- Alert decision matrix: confidence × risk level × model agreement → alert/inform/silent
+- Clinician-configurable thresholds per disease and per role
+- Audit trail: every silence decision is logged with reasoning
+
+---
+
+## Patent Candidate 8: Temporal Decay-Weighted Feature Importance
+
+**Claim:** A method for weighting clinical features in risk prediction models using learned, disease-specific temporal decay functions, where the influence of each measurement decreases over time at a rate that is specific to both the feature type and the target disease, reflecting the clinical reality that different measurements have different relevance half-lives for different conditions.
+
+**Why novel:**
+- TALE-EHR handles irregular time intervals with time-aware attention
+- Standard approaches use fixed time windows (e.g., "last 12 months of data")
+- Our system learns that: BP from yesterday matters more for stroke than BP from 6 months ago, BUT HbA1c from 3 months ago is still highly relevant for diabetes
+- Decay rates are LEARNED per (feature, disease) pair, not hardcoded
+
+**Implementation:**
+- Exponential decay function: weight = exp(-λ_{f,d} × Δt) where λ is learned per feature f and disease d
+- λ values learned during training via backpropagation
+- Clinically interpretable: can report "your last BP reading (3 days ago) has 95% relevance for stroke prediction, but only 60% relevance for CKD prediction"
+- Handles irregular measurement intervals naturally
+
+---
+
 ## Disease-Specific Expert Model Selection
 
 | Disease | Primary Model | Why This Model |
@@ -179,13 +278,19 @@ This document captures the novel ML architecture that forms PrescpHealth's compe
 
 ## Research Needed (Next Steps)
 
-1. Academic publications on disease cascade modeling in clinical ML
-2. Graph Neural Networks for multi-morbidity prediction
-3. Bayesian transfer learning for clinical models across populations
-4. Confidence calibration methods for clinical decision support
-5. Temporal Fusion Transformers for longitudinal health data
-6. Federated learning for multi-site clinical model training
-7. Novel opportunities we haven't considered yet
+1. ~~Academic publications on disease cascade modeling in clinical ML~~ — DONE (found 6 papers, none do causal cascade propagation)
+2. ~~Graph Neural Networks for multi-morbidity prediction~~ — DONE (found GVA+GNN, Laplacian GNN, none combine with adaptive weighting)
+3. ~~Bayesian transfer learning for clinical models across populations~~ — DONE (no prior art for NCD-specific cold-start)
+4. ~~Confidence calibration methods for clinical decision support~~ — DONE (CURA 2026 is closest, but for LLMs not ensembles)
+5. ~~Temporal Fusion Transformers for longitudinal health data~~ — DONE (TALE-EHR, TFCAM exist but don't learn per-disease decay)
+6. ~~Federated learning for multi-site clinical model training~~ — DONE (TrustFed 2026, but doesn't do Bayesian prior transfer)
+7. ~~Novel opportunities we haven't considered yet~~ — DONE (identified 8 total claims)
+
+### Remaining Research
+- Detailed implementation specifications for each patent claim
+- Formal mathematical notation for the provisional patent specification
+- Identify potential clinical co-author for paper credibility
+- Begin PhysioNet credentialing and UK Biobank application
 
 ---
 
@@ -194,3 +299,7 @@ This document captures the novel ML architecture that forms PrescpHealth's compe
 | Date | Change |
 |------|--------|
 | 2026-05-28 | Initial architecture design with 3 patent candidates |
+| 2026-05-31 | Added patent candidates 4-8 (Retrieval-Augmented, Counterfactual Cascade, Missingness Encoding, Clinical Silence, Temporal Decay) |
+| 2026-05-31 | Paper title finalized: "An Adaptive AI Framework for Multi-Disease Risk Analytics: Confidence-Weighted Ensemble Learning with Disease Cascade Modeling" |
+| 2026-05-31 | Full paper plan created (PAPER_PLAN.md) with structure, 30 references, validation strategy, timeline |
+| 2026-05-31 | Research landscape analysis complete — confirmed novelty of all 8 claims against 2024-2026 literature |

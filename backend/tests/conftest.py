@@ -139,9 +139,12 @@ def app():
             import importlib.util
             import sys
             import os
+            # Resolve path relative to this conftest file to avoid cwd ambiguity.
+            # conftest.py is at backend/tests/conftest.py, so go up two levels to backend/
+            _backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             _tenant_spec = importlib.util.spec_from_file_location(
                 "app.core.middleware.tenant",
-                os.path.join(os.getcwd(), "backend", "app", "core", "middleware", "tenant.py"),
+                os.path.join(_backend_dir, "app", "core", "middleware", "tenant.py"),
             )
             _tenant_mod = importlib.util.module_from_spec(_tenant_spec)
             sys.modules["app.core.middleware.tenant"] = _tenant_mod

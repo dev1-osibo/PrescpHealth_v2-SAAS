@@ -21,7 +21,7 @@ HIPAA Compliance:
 """
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Path, HTTPException, status
@@ -117,7 +117,7 @@ async def add_medication(
             data=result,
             meta={
                 "request_id": request_id,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         )
 
@@ -198,7 +198,7 @@ async def get_safety_summary(
             data=summary,
             meta={
                 "request_id": request_id,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         )
 
@@ -293,7 +293,7 @@ async def get_active_medications(
             data=data,
             meta={
                 "request_id": request_id,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "total": len(meds),
             },
         )
@@ -372,7 +372,7 @@ async def override_interaction(
             data=result,
             meta={
                 "request_id": request_id,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         )
 

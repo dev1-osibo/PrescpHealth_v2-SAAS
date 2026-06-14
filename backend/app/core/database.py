@@ -22,6 +22,7 @@ Connection Pool:
     once at startup (in lifespan) and shared across all requests.
 """
 
+from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
 import structlog
@@ -191,6 +192,40 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async with factory() as session:
         try:
             yield session
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            await session.close()
+
+
+@asynccontextmanager
+async def get_async_session_context() -> AsyncGenerator[AsyncSession, None]:
+    """
+    Async context manager for database sessions outside FastAPI request context.
+
+    Used by Celery tasks and domain event handlers that need a DB session
+    but don't have access to the FastAPI dependency injection system.
+
+    Unlike get_db() (which is a FastAPI Depends generator), this is a
+    standard async context manager usable anywhere:
+
+        async with get_async_session_context() as db:
+            result = await db.execute(select(Patient).where(...))
+
+    Transaction behavior:
+    - Auto-commits on successful exit
+    - Auto-rollbacks on exception
+    - Always closes the session
+
+    Yields:
+        AsyncSession: A database session for the current operation.
+    """
+    factory = get_session_factory()
+    async with factory() as session:
+        try:
+            yield session
+            await session.commit()
         except Exception:
             await session.rollback()
             raise

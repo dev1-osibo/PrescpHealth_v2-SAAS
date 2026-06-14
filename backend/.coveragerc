@@ -2,6 +2,7 @@
 source = app
 omit =
     app/modules/*_staging/*
+    app/core/*_staging*
     app/workers/*
 
 [report]

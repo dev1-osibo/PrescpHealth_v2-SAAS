@@ -35,11 +35,12 @@ except ImportError:
     class BackgroundTaskTracker:  # type: ignore[no-redef]
         """Stub tracker used when app.core.tasks_tracker is not installed."""
 
-        def __init__(self, db: Any) -> None:
+        def __init__(self, db: Any, tenant_id: Any = None) -> None:
             """Initialize stub tracker."""
             self.db = db
+            self.tenant_id = tenant_id
 
-        async def create_task(self, task_type: str, tenant_id: uuid.UUID) -> str:
+        async def create_task(self, task_type: str, params: dict | None = None) -> str:
             """Return a new UUID as a pseudo task_id."""
             return str(uuid.uuid4())
 
