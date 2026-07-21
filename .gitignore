@@ -195,3 +195,8 @@ ml/training/processed/
 *inspire*.zip
 *nhanes*.zip
 *who_steps*.zip
+
+# Cross-project shared docs are a SEPARATE git repo (PrescpHealth-Shared),
+# surfaced here via the `shared/` junction. Don't track the junction in this
+# repo — version the docs in their own repo to avoid drift/duplication.
+/shared/
