@@ -28,16 +28,15 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
+from pathlib import Path
+
 from ml.risk_engine.cascade_network import CascadeNetwork, DISEASE_NODES
 from ml.risk_engine.clinical_silence import ClinicalSilenceEngine
 from ml.risk_engine.data_assessment import DataAssessor
 from ml.risk_engine.explainer import RiskExplainer
 from ml.risk_engine.imputation import BayesianImputer
 from ml.risk_engine.meta_learner import AdaptiveMetaLearner
-from ml.risk_engine.models.xgboost_expert import XGBoostExpert
-from ml.risk_engine.models.lightgbm_expert import LightGBMExpert
-from ml.risk_engine.models.catboost_expert import CatBoostExpert
-from ml.risk_engine.models.neural_expert import NeuralExpert
+from ml.risk_engine.model_registry import RiskModelRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -101,13 +100,22 @@ class RiskOrchestrator:
     directly for synchronous computation.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, artifacts_root: str | Path | None = None) -> None:
         """Initialize all pipeline components.
 
-        Expert models start without trained artifacts — they return dummy
-        predictions (0.5, 0.0) until artifacts are loaded. This is intentional:
-        the meta-learner (Layer 4) will detect zero confidence and fall back
-        to clinical standards automatically.
+        Args:
+            artifacts_root: Optional root directory of trained model artifacts.
+                When provided (or set via PRESCP_ML_ARTIFACTS_ROOT), each disease
+                gets its OWN ensemble of experts loaded from
+                ``<root>/<disease>/<expert>/``. When None and no env var is set,
+                experts are constructed untrained and return (0.5, 0.0) — the
+                meta-learner (Layer 4) then falls back to clinical standards.
+                This is intentional graceful degradation for day-1 deployments.
+
+        Design note: experts are now instantiated PER DISEASE (not a single
+        shared ensemble reused across diseases). This is required for real
+        per-disease models — the stroke ensemble and the diabetes ensemble load
+        different artifacts and expose different feature sets.
         """
         # Layer 1: Data Assessment
         self._assessor = DataAssessor()
@@ -115,13 +123,13 @@ class RiskOrchestrator:
         # Layer 1.5: Imputation
         self._imputer = BayesianImputer()
 
-        # Layer 2: Expert Models (one per architecture, disease-agnostic)
-        self._experts = [
-            XGBoostExpert(disease_name="ensemble", version="0.0.0"),
-            LightGBMExpert(disease_name="ensemble", version="0.0.0"),
-            CatBoostExpert(disease_name="ensemble", version="0.0.0"),
-            NeuralExpert(disease_name="ensemble", version="0.0.0"),
-        ]
+        # Layer 2: Per-disease expert ensembles, loaded via the registry.
+        # Each disease owns an independent list of experts so trained artifacts
+        # (and feature sets) never leak across diseases.
+        self._registry = RiskModelRegistry(artifacts_root)
+        self._experts_by_disease = {
+            disease: self._registry.build_experts(disease) for disease in DISEASE_NODES
+        }
 
         # Layer 3: Disease Cascade Network
         self._cascade = CascadeNetwork()
@@ -161,6 +169,10 @@ class RiskOrchestrator:
         raw_scores: dict[str, float] = {}
         expert_preds: dict[str, tuple[float, float]] = {}
         confidences: dict[str, float] = {}
+        # Retain each disease's per-expert probabilities so Layer 5 can compute
+        # ensemble agreement WITHOUT re-predicting (and on the same imputed
+        # features the ensemble score was derived from — consistency matters).
+        expert_probs_by_disease: dict[str, list[float]] = {}
 
         for disease in DISEASE_NODES:
             # Impute missing features for this disease
@@ -168,13 +180,15 @@ class RiskOrchestrator:
             # Merge mask into features (missingness-as-feature)
             combined = {**imputed, **{k: float(v) for k, v in mask.items()}}
 
-            # Collect predictions from all experts
+            # Collect predictions from THIS disease's own expert ensemble
             disease_probs: list[float] = []
             disease_confs: list[float] = []
-            for expert in self._experts:
+            for expert in self._experts_by_disease[disease]:
                 prob, conf = expert.predict(combined)
                 disease_probs.append(prob)
                 disease_confs.append(conf)
+
+            expert_probs_by_disease[disease] = disease_probs
 
             # Ensemble: mean probability, mean confidence
             raw_scores[disease] = float(sum(disease_probs) / len(disease_probs))
@@ -199,16 +213,20 @@ class RiskOrchestrator:
             score = final_scores.get(disease, 0.5)
             conf = confidences.get(disease, 0.0)
 
-            # Ensemble agreement: fraction of experts that agree on direction
-            expert_high = sum(1 for e in self._experts if e.predict(patient_features)[0] > 0.5)
-            agreement = expert_high / len(self._experts)
+            # Ensemble agreement: fraction of THIS disease's experts predicting
+            # elevated risk. Reuses the Layer-2 probabilities (computed on the
+            # imputed feature set) instead of re-predicting on raw features.
+            disease_experts = self._experts_by_disease[disease]
+            disease_probs = expert_probs_by_disease[disease]
+            expert_high = sum(1 for p in disease_probs if p > 0.5)
+            agreement = expert_high / len(disease_probs) if disease_probs else 0.0
 
             # Clinical silence decision
             disposition = self._silence.should_alert(disease, score, conf, agreement)
 
-            # Explanation (use first expert as representative for SHAP)
+            # Explanation (use this disease's first expert as SHAP representative)
             explanation = self._explainer.explain_prediction(
-                self._experts[0], patient_features, score
+                disease_experts[0], patient_features, score
             )
 
             result.diseases[disease] = DiseaseResult(
@@ -224,7 +242,10 @@ class RiskOrchestrator:
 
         elapsed_ms = (time.perf_counter() - start) * 1000.0
         result.computation_time_ms = round(elapsed_ms, 2)
-        result.model_versions = {e.disease: e.model_version for e in self._experts}
+        # Per-disease trained-model version for the audit trail (0.0.0 = untrained).
+        result.model_versions = {
+            disease: self._registry.disease_version(disease) for disease in DISEASE_NODES
+        }
         result.pipeline_status = "success"
 
         logger.info(

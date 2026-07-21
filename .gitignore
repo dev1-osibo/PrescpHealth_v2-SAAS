@@ -165,3 +165,33 @@ temp/
 # Generated documentation (rebuild from source)
 docs/_build/
 site/
+
+# =============================================================================
+# CREDENTIALED CLINICAL DATASETS — NEVER COMMIT (PhysioNet DUA / HIPAA)
+# =============================================================================
+# Raw datasets (MIMIC-IV, eICU, INSPIRE, NHANES, WHO STEPS) are credentialed
+# under Data Use Agreements. They must NEVER enter version control, even a
+# private repo — committing/pushing is redistribution and violates the DUA.
+# Training runs on the AWS training instance where the data resides; only
+# code, configs, and (gitignored) trained artifacts live here.
+# Root-anchored (/data/) so it does NOT match the ml/training/data/ CODE package,
+# which holds cohort-extraction logic (no data) and must stay tracked. Raw/processed
+# datasets are blocked by the file-format patterns below and ml/training/processed/.
+/data/
+ml/data/
+ml/training/processed/
+
+# Raw clinical data file formats
+*.XPT
+*.xpt
+*.csv.gz
+*.parquet
+*.dta
+*.sas7bdat
+
+# Dataset archives (large credentialed downloads)
+*mimic*.zip
+*eicu*.zip
+*inspire*.zip
+*nhanes*.zip
+*who_steps*.zip
