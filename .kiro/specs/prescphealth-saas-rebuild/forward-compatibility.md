@@ -76,6 +76,49 @@ This document tracks gaps identified during checkpoint verification that need to
 
 ---
 
+## ML Training Pipeline Findings (2026-07-20 — during MIMIC-IV cohort + feature engineering)
+
+These are deferred data/labelling limitations in the training pipeline
+(`ml/training/`). They do not block writing the training code, but each must be
+resolved (or explicitly accepted) BEFORE trained models are validated and shipped,
+because each can bias metrics or the learned models. Also noted in code comments
+at the relevant module and in `memory/2026-07-20.md`.
+
+### Gap 8: ICD-9 diagnoses excluded from disease labelling
+- **Status**: 🟡 DEFERRED
+- **Current**: `disease_labels.py` labels only `icd_version == 10` rows; ICD-9 rows are skipped. `icd9_diagnosis_count()` reports how many are excluded.
+- **Needed by**: Per-disease model training (before eICU validation / shipping).
+- **Problem**: MIMIC-IV mixes ICD-9 and ICD-10. Dropping ICD-9 undercounts positives (false negatives in labels), especially for older admissions — biases prevalence and model recall. Magnitude is currently unquantified.
+- **Fix**: Either (a) add an ICD-9→ICD-10 crosswalk (GEMs) for the six target diseases, or (b) measure the excluded fraction and explicitly accept it as a threat-to-validity in the methods writeup.
+- **Implement**: Before training runs on real MIMIC data.
+- **Effort**: Medium (crosswalk table + tests) or Small (quantify + accept).
+
+### Gap 9: `min_icu_hours` cohort criterion not applied
+- **Status**: 🟡 DEFERRED
+- **Current**: `build_cohort` applies only `min_age`. `assemble.filter_by_vital_completeness` applies `max_missing_vitals_pct`. The `min_icu_hours` (24h) criterion in `COHORT_CRITERIA` is NOT applied.
+- **Needed by**: Cohort finalization before training.
+- **Problem**: Without the ICU-stay-duration gate, very short stays (little data, different population) enter the cohort, diluting/biasing training. Needs the `icustays` table (not currently loaded).
+- **Fix**: Add an `icustays`-based filter step (`los`/`intime`/`outtime` → hours) applied after cohort build.
+- **Implement**: Before training runs.
+- **Effort**: Small–Medium (load icustays, compute stay hours, filter).
+
+### Gap 10: Sparse schema features not extracted
+- **Status**: 🟡 DEFERRED
+- **Current**: `fev1`, `fev1_fvc_ratio`, `waist_circumference`, `albumin_creatinine_ratio` are in the inference schema (`POPULATION_PRIORS`) but are NOT extracted by `features/`. At inference the imputer fills them; in training they are simply absent.
+- **Needed by**: COPD (fev1/ratio) and CKD (ACR) model quality especially.
+- **Problem**: These are sparse in MIMIC ICU data. Absent training features weaken exactly the disease models that depend on them (COPD, CKD), and create a train/inference asymmetry (imputed-only at inference, never learned).
+- **Fix**: Investigate MIMIC itemids/labs for spirometry + urine ACR; extract where present, else document per-disease as unavailable and rely on the meta-learner's clinical-standard fallback for those diseases.
+- **Implement**: Before per-disease training of COPD and CKD.
+- **Effort**: Medium (source itemids, extraction + tests) — or Small to formally accept the gap per disease.
+
+### Note: `Glucose → fasting_glucose` approximation
+- **Status**: 🟡 DEFERRED (validity caveat, not a blocker)
+- **Current**: `labs.py` maps MIMIC "Glucose" (serum, not necessarily fasting) to the `fasting_glucose` feature — documented in the module.
+- **Fix/Decide**: Accept as approximation (label as such in methods) or source a fasting-specific signal. Relevant to diabetes model interpretation.
+- **Implement**: Before diabetes model is reported/shipped.
+
+---
+
 ## Implementation Log
 
 | Date | Gap | Action | Commit |
